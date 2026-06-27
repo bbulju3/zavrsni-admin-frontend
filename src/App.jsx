@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Login from './pages/Login';
 import ResourcesTable from './components/ResourcesTable';
-import UsersTable from './components/UsersTable'; // Uvezeno
+import UsersTable from './components/UsersTable';
+import AdminsTable from './components/AdminsTable'; // Uvezeno
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    // Dodajemo state za praćenje aktivnog taba
+    // Inicijalno učitan tab
     const [activeTab, setActiveTab] = useState('resursi');
 
     const handleLogout = () => {
@@ -23,7 +24,7 @@ const Dashboard = () => {
                     </div>
 
                     <nav className="space-y-2">
-                        {/* Gumb za Resurse */}
+                        {/* Resursi */}
                         <div
                             onClick={() => setActiveTab('resursi')}
                             className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'resursi'
@@ -33,7 +34,7 @@ const Dashboard = () => {
                         >
                             📦 Resursi
                         </div>
-                        {/* Gumb za Korisnike */}
+                        {/* Korisnici */}
                         <div
                             onClick={() => setActiveTab('korisnici')}
                             className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'korisnici'
@@ -42,6 +43,16 @@ const Dashboard = () => {
                                 }`}
                         >
                             👥 Korisnici
+                        </div>
+                        {/* Administratori */}
+                        <div
+                            onClick={() => setActiveTab('administratori')}
+                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'administratori'
+                                    ? 'bg-slate-900 text-white'
+                                    : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
+                                }`}
+                        >
+                            👔 Administratori
                         </div>
                     </nav>
                 </div>
@@ -57,12 +68,15 @@ const Dashboard = () => {
             <main className="flex-1 p-8">
                 <header className="flex justify-between items-center border-b border-slate-200 pb-5 mb-8">
                     <div>
-                        {/* Dinamičan naslov ovisno o odabranom tabu */}
                         <h1 className="text-2xl font-bold text-slate-900">
-                            {activeTab === 'resursi' ? 'Upravljanje resursima' : 'Upravljanje korisnicima'}
+                            {activeTab === 'resursi' && 'Upravljanje resursima'}
+                            {activeTab === 'korisnici' && 'Upravljanje korisnicima'}
+                            {activeTab === 'administratori' && 'Upravljanje administratorima'}
                         </h1>
                         <p className="text-sm text-slate-500">
-                            {activeTab === 'resursi' ? 'Pregled, filtriranje i upravljanje imovinom.' : 'Administracija korisničkih računa.'}
+                            {activeTab === 'resursi' && 'Pregled, filtriranje i upravljanje imovinom.'}
+                            {activeTab === 'korisnici' && 'Administracija korisničkih računa.'}
+                            {activeTab === 'administratori' && 'Pregled i upravljanje administratorskim pristupom.'}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -71,8 +85,10 @@ const Dashboard = () => {
                     </div>
                 </header>
 
-                {/* Uvjetno renderiranje: Ako je aktivan 'resursi' prikaži ResourcesTable, inače prikaži UsersTable */}
-                {activeTab === 'resursi' ? <ResourcesTable /> : <UsersTable />}
+                {/* Uvjetno renderiranje komponenata */}
+                {activeTab === 'resursi' && <ResourcesTable />}
+                {activeTab === 'korisnici' && <UsersTable />}
+                {activeTab === 'administratori' && <AdminsTable />}
 
             </main>
         </div>
