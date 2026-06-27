@@ -2,23 +2,34 @@ import { useState, useEffect, useMemo } from 'react';
 import api from '../api/axiosConfig';
 
 const ReservationsTable = () => {
-    // 1. STATE ZA PODATKE (Tablice)
+    // 1. STATE ZA PODATKE I TABLICU
     const [rezervacije, setRezervacije] = useState([]);
     const [korisnici, setKorisnici] = useState([]);
     const [resursi, setResursi] = useState([]);
 
-    // STATE ZA UI
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [sortConfig, setSortConfig] = useState(null);
-    const [filters, setFilters] = useState({ status: '' });
 
-    // 2. STATE ZA MODALNE PROZORE
+    // Filteri sada prate sve stupce
+    const [filters, setFilters] = useState({
+        korisnik_ime: '',
+        resurs_naziv: '',
+        pocetak_prikaz: '',
+        zavrsetak_prikaz: '',
+        status: '',
+        napomena_admina: ''
+    });
+
+    // 2. STATE ZA MODALNE PROZORE (Pop-upove)
+    // Rješavamo tvoj zahtjev da se datum i vrijeme biraju odvojeno preko ugrađenih widgeta
     const initialFormState = {
         korisnik_id: '',
         resurs_id: '',
-        vrijeme_pocetka: '',
-        vrijeme_zavrsetka: '',
+        pocetak_datum: '',
+        pocetak_vrijeme: '',
+        zavrsetak_datum: '',
+        zavrsetak_vrijeme: '',
         status: 'aktivna',
         napomena_admina: ''
     };
@@ -27,20 +38,23 @@ const ReservationsTable = () => {
     const [formData, setFormData] = useState(initialFormState);
     const [deleteAlert, setDeleteAlert] = useState({ isOpen: false, id: null });
 
-    // POMOĆNE FUNKCIJE ZA DATUME (Frontend <-> Backend)
-    // Pretvara iz baze "2026-06-27T14:30:00.000Z" u format za datetime-local "2026-06-27T16:30"
-    const formatForInput = (dateString) => {
-        if (!dateString) return '';
+    // POMOĆNE FUNKCIJE ZA DATUME
+    const parseDateString = (dateString) => {
+        if (!dateString) return { datum: '', vrijeme: '' };
         const d = new Date(dateString);
-        // Lokalno vrijeme
         const pad = (n) => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return {
+            datum: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+            vrijeme: `${pad(d.getHours())}:${pad(d.getMinutes())}`
+        };
     };
 
-    // Pretvara datetime-local "2026-06-27T16:30" u MySQL format "2026-06-27 16:30:00"
-    const formatForMySQL = (localDateTime) => {
-        if (!localDateTime) return null;
-        return localDateTime.replace('T', ' ') + ':00';
+    const formatDisplayDate = (dateString) => {
+        if (!dateString) return '-';
+        const d = new Date(dateString);
+        const pad = (n) => n.toString().padStart(2, '0');
+        // Prikaz npr. 27.06.2026. 14:30
+        return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}. ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
 
     // 3. DOHVAĆANJE PODATAKA
@@ -56,11 +70,10 @@ const ReservationsTable = () => {
     useEffect(() => {
         const initialLoad = async () => {
             try {
-                // Paralelno povlačimo rezervacije, korisnike i resurse
                 const [rezRes, korRes, resRes] = await Promise.all([
                     api.get('/api/rezervacije'),
                     api.get('/api/korisnici'),
-                    api.get('/api/resursi') // Pretpostavka putanje za resurse
+                    api.get('/api/resursi')
                 ]);
 
                 setRezervacije(rezRes.data);
@@ -76,7 +89,25 @@ const ReservationsTable = () => {
         initialLoad();
     }, []);
 
-    // 4. CRUD LOGIKA
+    // 4. PRIPREMA PODATAKA (Povezivanje ID-jeva s imenima za lakše filtriranje)
+    const enrichedRezervacije = useMemo(() => {
+        return rezervacije.map(rez => {
+            const user = korisnici.find(k => k.id === rez.korisnik_id);
+            const resurs = resursi.find(r => r.id === rez.resurs_id);
+
+            return {
+                ...rez,
+                korisnik_ime: user ? `${user.ime} ${user.prezime}` : `ID: ${rez.korisnik_id}`,
+                resurs_naziv: resurs ? resurs.naziv || resurs.ime || `Resurs ${rez.resurs_id}` : `ID: ${rez.resurs_id}`,
+                pocetak_prikaz: formatDisplayDate(rez.vrijeme_pocetka),
+                zavrsetak_prikaz: formatDisplayDate(rez.vrijeme_zavrsetka),
+                // Praznu napomenu spremamo kao '-' radi lakšeg filtriranja praznih vrijednosti
+                napomena_admina: rez.napomena_admina || '-'
+            };
+        });
+    }, [rezervacije, korisnici, resursi]);
+
+    // 5. CRUD LOGIKA
     const openCreateModal = () => {
         setModalMode('create');
         setFormData(initialFormState);
@@ -85,14 +116,19 @@ const ReservationsTable = () => {
 
     const openEditModal = (item) => {
         setModalMode('edit');
+        const pocetak = parseDateString(item.vrijeme_pocetka);
+        const zavrsetak = parseDateString(item.vrijeme_zavrsetka);
+
         setFormData({
             id: item.id,
             korisnik_id: item.korisnik_id,
             resurs_id: item.resurs_id,
-            vrijeme_pocetka: formatForInput(item.vrijeme_pocetka),
-            vrijeme_zavrsetka: formatForInput(item.vrijeme_zavrsetka),
+            pocetak_datum: pocetak.datum,
+            pocetak_vrijeme: pocetak.vrijeme,
+            zavrsetak_datum: zavrsetak.datum,
+            zavrsetak_vrijeme: zavrsetak.vrijeme,
             status: item.status,
-            napomena_admina: item.napomena_admina || ''
+            napomena_admina: item.napomena_admina === '-' ? '' : item.napomena_admina
         });
         setIsModalOpen(true);
     };
@@ -100,11 +136,14 @@ const ReservationsTable = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Pripremamo payload s ispravnim MySQL formatom datuma
+            // Spajamo datum i vrijeme u standardni MySQL format prije slanja na API
             const payload = {
-                ...formData,
-                vrijeme_pocetka: formatForMySQL(formData.vrijeme_pocetka),
-                vrijeme_zavrsetka: formatForMySQL(formData.vrijeme_zavrsetka)
+                korisnik_id: formData.korisnik_id,
+                resurs_id: formData.resurs_id,
+                vrijeme_pocetka: `${formData.pocetak_datum} ${formData.pocetak_vrijeme}:00`,
+                vrijeme_zavrsetka: `${formData.zavrsetak_datum} ${formData.zavrsetak_vrijeme}:00`,
+                status: formData.status,
+                napomena_admina: formData.napomena_admina || null
             };
 
             if (modalMode === 'create') {
@@ -131,16 +170,19 @@ const ReservationsTable = () => {
         }
     };
 
-    // 5. LOGIKA ZA TABLICU
-    const getUserName = (id) => {
-        const user = korisnici.find(k => k.id === id);
-        return user ? `${user.ime} ${user.prezime}` : `ID: ${id}`;
-    };
-
-    const getResourceName = (id) => {
-        const resurs = resursi.find(r => r.id === id);
-        return resurs ? resurs.naziv || resurs.ime || `Resurs ${id}` : `ID: ${id}`;
-    };
+    // 6. LOGIKA ZA TABLICU (Sortiranje i dinamički filteri)
+    const uniqueValues = useMemo(() => {
+        const columns = ['korisnik_ime', 'resurs_naziv', 'pocetak_prikaz', 'zavrsetak_prikaz', 'status', 'napomena_admina'];
+        const uniques = {};
+        columns.forEach(col => {
+            const values = enrichedRezervacije
+                .map(item => item[col])
+                .filter(val => val !== null && val !== undefined && val !== '')
+                .map(val => String(val));
+            uniques[col] = [...new Set(values)].sort((a, b) => a.localeCompare(b));
+        });
+        return uniques;
+    }, [enrichedRezervacije]);
 
     const requestSort = (key) => {
         let direction = 'asc';
@@ -149,49 +191,54 @@ const ReservationsTable = () => {
     };
 
     const processedData = useMemo(() => {
-        let data = [...rezervacije];
-        if (filters.status) {
-            data = data.filter(item => item.status === filters.status);
-        }
+        let data = [...enrichedRezervacije];
+
+        // Primjena filtera
+        Object.keys(filters).forEach(key => {
+            if (filters[key]) {
+                data = data.filter(item => String(item[key] || '') === filters[key]);
+            }
+        });
+
+        // Primjena sortiranja
         if (sortConfig !== null) {
             data.sort((a, b) => {
-                let aValue = a[sortConfig.key] || '';
-                let bValue = b[sortConfig.key] || '';
+                let aValue = a[sortConfig.key];
+                let bValue = b[sortConfig.key];
+
+                // Posebna logika za datume (moramo sortirati po pravim datumima, a ne po formatiranom stringu "DD.MM.YYYY")
+                if (sortConfig.key === 'pocetak_prikaz') {
+                    aValue = new Date(a.vrijeme_pocetka).getTime();
+                    bValue = new Date(b.vrijeme_pocetka).getTime();
+                } else if (sortConfig.key === 'zavrsetak_prikaz') {
+                    aValue = new Date(a.vrijeme_zavrsetka).getTime();
+                    bValue = new Date(b.vrijeme_zavrsetka).getTime();
+                }
+
+                if (aValue === null || aValue === undefined) aValue = '';
+                if (bValue === null || bValue === undefined) bValue = '';
+
                 if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
                 if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
                 return 0;
             });
         }
         return data;
-    }, [rezervacije, filters, sortConfig]);
-
-    const formatDisplayDate = (dateString) => {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleString('hr-HR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    };
-
-    const getStatusStyle = (status) => {
-        switch (status) {
-            case 'aktivna': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-            case 'zavrsena': return 'bg-slate-100 text-slate-600 border-slate-200';
-            case 'otkazana': return 'bg-red-100 text-red-700 border-red-200';
-            default: return 'bg-gray-100 text-gray-700 border-gray-200';
-        }
-    };
+    }, [enrichedRezervacije, filters, sortConfig]);
 
     if (loading) return <div className="p-4 text-slate-500">Učitavanje rezervacija...</div>;
     if (error) return <div className="p-4 text-red-500 font-medium">{error}</div>;
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
+            {/* Header tablice sa plavim gumbom */}
             <div className="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-800">Popis svih rezervacija</h3>
                 <button
                     onClick={openCreateModal}
-                    className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors shadow-sm cursor-pointer"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors shadow-sm cursor-pointer"
                 >
-                    + Nova rezervacija
+                    + Dodaj novu rezervaciju
                 </button>
             </div>
 
@@ -199,64 +246,90 @@ const ReservationsTable = () => {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-slate-100 border-b border-slate-200">
-                            <th className="p-3 font-semibold text-slate-700 text-sm align-top min-w-[150px]">Korisnik</th>
-                            <th className="p-3 font-semibold text-slate-700 text-sm align-top min-w-[150px]">Resurs</th>
-                            <th className="p-3 font-semibold text-slate-700 text-sm align-top cursor-pointer select-none" onClick={() => requestSort('vrijeme_pocetka')}>
-                                Početak {sortConfig?.key === 'vrijeme_pocetka' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
+                            {[
+                                { key: 'korisnik_ime', label: 'Korisnik' },
+                                { key: 'resurs_naziv', label: 'Resurs' },
+                                { key: 'pocetak_prikaz', label: 'Početak' },
+                                { key: 'zavrsetak_prikaz', label: 'Završetak' },
+                                { key: 'napomena_admina', label: 'Napomena' },
+                                { key: 'status', label: 'Status' }
+                            ].map((col) => (
+                                <th key={col.key} className="p-3 font-semibold text-slate-700 text-sm align-top min-w-[140px]">
+                                    <div
+                                        className="flex items-center gap-1 cursor-pointer hover:text-blue-600 mb-2 transition-colors select-none"
+                                        onClick={() => requestSort(col.key)}
+                                    >
+                                        {col.label}
+                                        <span className="text-xs text-slate-400">
+                                            {sortConfig?.key === col.key ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}
+                                        </span>
+                                    </div>
+                                    <select
+                                        value={filters[col.key]}
+                                        onChange={(e) => setFilters({ ...filters, [col.key]: e.target.value })}
+                                        className="w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-normal shadow-sm bg-white text-slate-700 cursor-pointer"
+                                    >
+                                        <option value="">Sve</option>
+                                        {uniqueValues[col.key]?.map((val) => (
+                                            <option key={val} value={val}>
+                                                {val === '-' && col.key === 'napomena_admina' ? 'Bez napomene' : val}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </th>
+                            ))}
+                            <th className="p-3 font-semibold text-slate-700 text-sm align-top text-center w-28">
+                                Akcije
                             </th>
-                            <th className="p-3 font-semibold text-slate-700 text-sm align-top cursor-pointer select-none" onClick={() => requestSort('vrijeme_zavrsetka')}>
-                                Završetak {sortConfig?.key === 'vrijeme_zavrsetka' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                            </th>
-                            <th className="p-3 font-semibold text-slate-700 text-sm align-top min-w-[120px]">
-                                <div className="mb-2 select-none">Status</div>
-                                <select
-                                    value={filters.status}
-                                    onChange={(e) => setFilters({ status: e.target.value })}
-                                    className="w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:outline-none focus:border-amber-500 font-normal shadow-sm bg-white text-slate-700 cursor-pointer"
-                                >
-                                    <option value="">Svi</option>
-                                    <option value="aktivna">Aktivna</option>
-                                    <option value="zavrsena">Završena</option>
-                                    <option value="otkazana">Otkazana</option>
-                                </select>
-                            </th>
-                            <th className="p-3 font-semibold text-slate-700 text-sm align-top text-center w-28">Akcije</th>
                         </tr>
                     </thead>
                     <tbody>
                         {processedData.length > 0 ? (
                             processedData.map((item) => (
                                 <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                    <td className="p-3 text-sm font-medium text-slate-800">{getUserName(item.korisnik_id)}</td>
-                                    <td className="p-3 text-sm text-amber-600 font-medium">{getResourceName(item.resurs_id)}</td>
-                                    <td className="p-3 text-sm text-slate-600">{formatDisplayDate(item.vrijeme_pocetka)}</td>
-                                    <td className="p-3 text-sm text-slate-600">{formatDisplayDate(item.vrijeme_zavrsetka)}</td>
+                                    <td className="p-3 text-sm font-medium text-slate-800">{item.korisnik_ime}</td>
+                                    <td className="p-3 text-sm text-slate-600">{item.resurs_naziv}</td>
+                                    <td className="p-3 text-sm text-slate-600 whitespace-nowrap">{item.pocetak_prikaz}</td>
+                                    <td className="p-3 text-sm text-slate-600 whitespace-nowrap">{item.zavrsetak_prikaz}</td>
+                                    <td className="p-3 text-sm text-slate-500 max-w-[150px] truncate" title={item.napomena_admina !== '-' ? item.napomena_admina : ''}>
+                                        {item.napomena_admina}
+                                    </td>
                                     <td className="p-3 text-sm">
-                                        <span className={`px-2 py-1 rounded text-xs font-semibold border ${getStatusStyle(item.status)}`}>
-                                            {item.status.toUpperCase()}
+                                        <span className={`px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider ${item.status === 'aktivna' ? 'bg-emerald-100 text-emerald-700' :
+                                                item.status === 'zavrsena' ? 'bg-slate-200 text-slate-700' :
+                                                    'bg-red-100 text-red-700'
+                                            }`}>
+                                            {item.status}
                                         </span>
-                                        {item.napomena_admina && (
-                                            <div className="mt-1 text-xs text-slate-400 italic" title={item.napomena_admina}>
-                                                📝 Postoji napomena
-                                            </div>
-                                        )}
                                     </td>
                                     <td className="p-3 text-sm text-center">
                                         <div className="flex justify-center gap-2">
-                                            {/* UPDATE gumb se prikazuje SAMO ako je status aktivna */}
+                                            {/* ZADRŽANO: Prikazuje se samo za status 'aktivna' */}
                                             {item.status === 'aktivna' ? (
-                                                <button onClick={() => openEditModal(item)} className="text-amber-500 hover:text-amber-700 font-medium cursor-pointer p-1" title="Uredi">✎</button>
+                                                <button
+                                                    onClick={() => openEditModal(item)}
+                                                    className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer p-1"
+                                                    title="Uredi"
+                                                >
+                                                    ✎
+                                                </button>
                                             ) : (
-                                                <span className="p-1 w-[28px] inline-block"></span> /* Prazan prostor za poravnanje brisanja */
+                                                <span className="p-1 w-[28px] inline-block"></span>
                                             )}
-                                            <button onClick={() => setDeleteAlert({ isOpen: true, id: item.id })} className="text-red-600 hover:text-red-800 font-medium cursor-pointer p-1" title="Obriši">🗑</button>
+                                            <button
+                                                onClick={() => setDeleteAlert({ isOpen: true, id: item.id })}
+                                                className="text-red-600 hover:text-red-800 font-medium cursor-pointer p-1"
+                                                title="Obriši"
+                                            >
+                                                🗑
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="6" className="p-8 text-center text-slate-500">
+                                <td colSpan="7" className="p-8 text-center text-slate-500">
                                     Nema pronađenih rezervacija.
                                 </td>
                             </tr>
@@ -268,46 +341,66 @@ const ReservationsTable = () => {
             {/* MODAL ZA CREATE / UPDATE */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-bold text-slate-800 mb-4">
-                            {modalMode === 'create' ? 'Nova rezervacija' : 'Uredi rezervaciju'}
+                            {modalMode === 'create' ? 'Dodaj novu rezervaciju' : 'Uredi rezervaciju'}
                         </h2>
 
                         <form onSubmit={handleFormSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1">Korisnik <span className="text-red-500">*</span></label>
-                                <select required value={formData.korisnik_id} onChange={(e) => setFormData({ ...formData, korisnik_id: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
-                                    <option value="" disabled>Odaberi korisnika...</option>
-                                    {korisnici.map(k => (
-                                        <option key={k.id} value={k.id}>{k.ime} {k.prezime} ({k.email})</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1">Resurs <span className="text-red-500">*</span></label>
-                                <select required value={formData.resurs_id} onChange={(e) => setFormData({ ...formData, resurs_id: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
-                                    <option value="" disabled>Odaberi resurs...</option>
-                                    {resursi.map(r => (
-                                        <option key={r.id} value={r.id}>{r.naziv || r.ime || `Resurs ${r.id}`}</option>
-                                    ))}
-                                </select>
-                            </div>
-
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Početak <span className="text-red-500">*</span></label>
-                                    <input type="datetime-local" required value={formData.vrijeme_pocetka} onChange={(e) => setFormData({ ...formData, vrijeme_pocetka: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Korisnik <span className="text-red-500">*</span></label>
+                                    <select required value={formData.korisnik_id} onChange={(e) => setFormData({ ...formData, korisnik_id: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                        <option value="" disabled>Odaberi korisnika...</option>
+                                        {korisnici.map(k => (
+                                            <option key={k.id} value={k.id}>{k.ime} {k.prezime} ({k.email})</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Završetak <span className="text-red-500">*</span></label>
-                                    <input type="datetime-local" required value={formData.vrijeme_zavrsetka} onChange={(e) => setFormData({ ...formData, vrijeme_zavrsetka: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Resurs <span className="text-red-500">*</span></label>
+                                    <select required value={formData.resurs_id} onChange={(e) => setFormData({ ...formData, resurs_id: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                        <option value="" disabled>Odaberi resurs...</option>
+                                        {resursi.map(r => (
+                                            <option key={r.id} value={r.id}>{r.naziv || r.ime || `Resurs ${r.id}`}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* RAZDVOJENI UNOS ZA DATUM I VRIJEME POCETKA */}
+                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                                <label className="block text-sm font-bold text-slate-800 mb-2">Početak rezervacije <span className="text-red-500">*</span></label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 mb-1">Datum</label>
+                                        <input type="date" required value={formData.pocetak_datum} onChange={(e) => setFormData({ ...formData, pocetak_datum: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 mb-1">Vrijeme</label>
+                                        <input type="time" required value={formData.pocetak_vrijeme} onChange={(e) => setFormData({ ...formData, pocetak_vrijeme: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* RAZDVOJENI UNOS ZA DATUM I VRIJEME ZAVRSETKA */}
+                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                                <label className="block text-sm font-bold text-slate-800 mb-2">Završetak rezervacije <span className="text-red-500">*</span></label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 mb-1">Datum</label>
+                                        <input type="date" required value={formData.zavrsetak_datum} onChange={(e) => setFormData({ ...formData, zavrsetak_datum: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 mb-1">Vrijeme</label>
+                                        <input type="time" required value={formData.zavrsetak_vrijeme} onChange={(e) => setFormData({ ...formData, zavrsetak_vrijeme: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white" />
+                                    </div>
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1">Status <span className="text-red-500">*</span></label>
-                                <select required value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                <select required value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                                     <option value="aktivna">Aktivna</option>
                                     <option value="zavrsena">Završena</option>
                                     <option value="otkazana">Otkazana</option>
@@ -316,14 +409,14 @@ const ReservationsTable = () => {
 
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1">Napomena administratora</label>
-                                <textarea rows="2" value={formData.napomena_admina} onChange={(e) => setFormData({ ...formData, napomena_admina: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="Opcionalno..."></textarea>
+                                <textarea rows="2" value={formData.napomena_admina} onChange={(e) => setFormData({ ...formData, napomena_admina: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="Opcionalno..."></textarea>
                             </div>
 
                             <div className="flex justify-end gap-3 mt-6">
                                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
                                     Odustani
                                 </button>
-                                <button type="submit" className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg shadow-sm transition-colors cursor-pointer">
+                                <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors cursor-pointer">
                                     {modalMode === 'create' ? 'Spremi rezervaciju' : 'Spremi izmjene'}
                                 </button>
                             </div>
