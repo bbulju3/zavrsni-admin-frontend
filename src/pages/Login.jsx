@@ -34,9 +34,9 @@ const Login = () => {
         */
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
 
-            /* Kartica forme: bijela pozadina, zaobljeni rubovi (rounded-2xl), duboka sjena (shadow-xl),
+            {/* Kartica forme: bijela pozadina, zaobljeni rubovi (rounded-2xl), duboka sjena (shadow-xl),
             ograničena širina (max-w-md) i unutrašnji razmak (p-8)
-            */
+            */}
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
 
                 {/* Naslov prijave s modernim tamnim fontom */}
