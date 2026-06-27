@@ -3,11 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import Login from './pages/Login';
 import ResourcesTable from './components/ResourcesTable';
 import UsersTable from './components/UsersTable';
-import AdminsTable from './components/AdminsTable'; // Uvezeno
+import AdminsTable from './components/AdminsTable';
+import ReservationsTable from './components/ReservationsTable'; // Uvezeno
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    // Inicijalno učitan tab
     const [activeTab, setActiveTab] = useState('resursi');
 
     const handleLogout = () => {
@@ -24,35 +24,34 @@ const Dashboard = () => {
                     </div>
 
                     <nav className="space-y-2">
-                        {/* Resursi */}
                         <div
                             onClick={() => setActiveTab('resursi')}
-                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'resursi'
-                                    ? 'bg-slate-900 text-white'
-                                    : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
+                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'resursi' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
                                 }`}
                         >
                             📦 Resursi
                         </div>
-                        {/* Korisnici */}
                         <div
                             onClick={() => setActiveTab('korisnici')}
-                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'korisnici'
-                                    ? 'bg-slate-900 text-white'
-                                    : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
+                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'korisnici' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
                                 }`}
                         >
                             👥 Korisnici
                         </div>
-                        {/* Administratori */}
                         <div
                             onClick={() => setActiveTab('administratori')}
-                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'administratori'
-                                    ? 'bg-slate-900 text-white'
-                                    : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
+                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'administratori' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
                                 }`}
                         >
                             👔 Administratori
+                        </div>
+                        {/* NOVO: Gumb za Rezervacije */}
+                        <div
+                            onClick={() => setActiveTab('rezervacije')}
+                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'rezervacije' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
+                                }`}
+                        >
+                            📅 Rezervacije
                         </div>
                     </nav>
                 </div>
@@ -72,11 +71,13 @@ const Dashboard = () => {
                             {activeTab === 'resursi' && 'Upravljanje resursima'}
                             {activeTab === 'korisnici' && 'Upravljanje korisnicima'}
                             {activeTab === 'administratori' && 'Upravljanje administratorima'}
+                            {activeTab === 'rezervacije' && 'Upravljanje rezervacijama'}
                         </h1>
                         <p className="text-sm text-slate-500">
                             {activeTab === 'resursi' && 'Pregled, filtriranje i upravljanje imovinom.'}
                             {activeTab === 'korisnici' && 'Administracija korisničkih računa.'}
                             {activeTab === 'administratori' && 'Pregled i upravljanje administratorskim pristupom.'}
+                            {activeTab === 'rezervacije' && 'Praćenje i izmjena rasporeda korištenja resursa.'}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -89,6 +90,7 @@ const Dashboard = () => {
                 {activeTab === 'resursi' && <ResourcesTable />}
                 {activeTab === 'korisnici' && <UsersTable />}
                 {activeTab === 'administratori' && <AdminsTable />}
+                {activeTab === 'rezervacije' && <ReservationsTable />}
 
             </main>
         </div>
