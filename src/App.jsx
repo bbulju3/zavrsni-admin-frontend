@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Login from './pages/Login';
-import ResourcesTable from './components/ResourcesTable'; // Uvozimo komponentu tablice
+import ResourcesTable from './components/ResourcesTable';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -48,18 +48,9 @@ const Dashboard = () => {
                     </div>
                 </header>
 
-                {/* Radni prostor s tvojom tablicom */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
-                    <div className="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
-                        <h3 className="text-lg font-bold text-slate-800">Popis svih resursa</h3>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors shadow-sm cursor-pointer">
-                            + Dodaj novi resurs
-                        </button>
-                    </div>
+                {/* Ovdje sada samo pozivamo tablicu, sva UI logika je unutar nje */}
+                <ResourcesTable />
 
-                    {/* Ovdje se iscrtava tablica */}
-                    <ResourcesTable />
-                </div>
             </main>
         </div>
     );
