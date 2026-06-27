@@ -17,7 +17,7 @@ const Dashboard = () => {
             <p>Uspješno ste prijavljeni. Ovdje će biti tablice s resursima i korisnicima.</p>
             <button
                 onClick={handleLogout}
-                style={{ padding: '10px', marginTop: '20px', cursor: 'pointer' }}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded mt-5"
             >
                 Odjava
             </button>
