@@ -63,15 +63,11 @@ const UsersTable = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Frontend šalje 'lozinka', backend će to obraditi
             if (modalMode === 'create') {
                 await api.post('/api/korisnici', formData);
             } else if (modalMode === 'edit') {
-                // Ako lozinka nije upisana prilikom edita, brišemo je iz payloada da je ne pošaljemo praznu
-                const payload = { ...formData };
-                if (!payload.lozinka) {
-                    delete payload.lozinka;
-                }
-                await api.put(`/api/korisnici/${formData.id}`, payload);
+                await api.put(`/api/korisnici/${formData.id}`, formData);
             }
             setIsModalOpen(false);
             fetchKorisnici();
