@@ -319,14 +319,12 @@ const ZabraneTable = () => {
                         </h2>
 
                         <form onSubmit={handleFormSubmit} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1">Korisnik <span className="text-red-500">*</span></label>
                                     <select required value={formData.korisnik_id} onChange={(e) => setFormData({ ...formData, korisnik_id: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm">
                                         <option value="" disabled>Odaberi korisnika...</option>
                                         {korisnici.map(k => <option key={k.id} value={k.id}>{k.ime} {k.prezime} ({k.email})</option>)}
                                     </select>
-                                </div>
                             </div>
 
                             {/* LOGIKA ZA POŠTIVANJE CHECK CONSTRAINTA */}
