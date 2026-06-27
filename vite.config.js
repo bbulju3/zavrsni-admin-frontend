@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite' // Uvozimo novi Tailwind plugin
 
 export default defineConfig({
     plugins: [
-        react(),
         tailwindcss(), // Dodajemo ga ovdje
+        react(),
     ],
 })
