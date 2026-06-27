@@ -327,13 +327,6 @@ const ZabraneTable = () => {
                                         {korisnici.map(k => <option key={k.id} value={k.id}>{k.ime} {k.prezime} ({k.email})</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Administrator <span className="text-red-500">*</span></label>
-                                    <select required value={formData.administrator_id} onChange={(e) => setFormData({ ...formData, administrator_id: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm">
-                                        <option value="" disabled>Odaberi administratora...</option>
-                                        {administratori.map(a => <option key={a.id} value={a.id}>{a.ime} {a.prezime}</option>)}
-                                    </select>
-                                </div>
                             </div>
 
                             {/* LOGIKA ZA POŠTIVANJE CHECK CONSTRAINTA */}
