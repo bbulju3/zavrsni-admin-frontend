@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Login from './pages/Login';
 import ResourcesTable from './components/ResourcesTable';
+import UsersTable from './components/UsersTable'; // Uvezeno
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    // Dodajemo state za praćenje aktivnog taba
+    const [activeTab, setActiveTab] = useState('resursi');
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
@@ -18,11 +22,25 @@ const Dashboard = () => {
                         ADMIN PANEL
                     </div>
 
-                    <nav className="space-y-1">
-                        <div className="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors">
+                    <nav className="space-y-2">
+                        {/* Gumb za Resurse */}
+                        <div
+                            onClick={() => setActiveTab('resursi')}
+                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'resursi'
+                                    ? 'bg-slate-900 text-white'
+                                    : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
+                                }`}
+                        >
                             📦 Resursi
                         </div>
-                        <div className="px-4 py-2.5 text-slate-400 hover:bg-slate-900 hover:text-white rounded-xl font-medium cursor-pointer transition-colors">
+                        {/* Gumb za Korisnike */}
+                        <div
+                            onClick={() => setActiveTab('korisnici')}
+                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'korisnici'
+                                    ? 'bg-slate-900 text-white'
+                                    : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'
+                                }`}
+                        >
                             👥 Korisnici
                         </div>
                     </nav>
@@ -39,8 +57,13 @@ const Dashboard = () => {
             <main className="flex-1 p-8">
                 <header className="flex justify-between items-center border-b border-slate-200 pb-5 mb-8">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Upravljanje resursima</h1>
-                        <p className="text-sm text-slate-500">Pregled, filtriranje i upravljanje imovinom.</p>
+                        {/* Dinamičan naslov ovisno o odabranom tabu */}
+                        <h1 className="text-2xl font-bold text-slate-900">
+                            {activeTab === 'resursi' ? 'Upravljanje resursima' : 'Upravljanje korisnicima'}
+                        </h1>
+                        <p className="text-sm text-slate-500">
+                            {activeTab === 'resursi' ? 'Pregled, filtriranje i upravljanje imovinom.' : 'Administracija korisničkih računa.'}
+                        </p>
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -48,8 +71,8 @@ const Dashboard = () => {
                     </div>
                 </header>
 
-                {/* Ovdje sada samo pozivamo tablicu, sva UI logika je unutar nje */}
-                <ResourcesTable />
+                {/* Uvjetno renderiranje: Ako je aktivan 'resursi' prikaži ResourcesTable, inače prikaži UsersTable */}
+                {activeTab === 'resursi' ? <ResourcesTable /> : <UsersTable />}
 
             </main>
         </div>
