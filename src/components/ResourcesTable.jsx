@@ -5,10 +5,9 @@ const ResourcesTable = () => {
     const [resursi, setResursi] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
     const [sortConfig, setSortConfig] = useState(null);
 
-    // Filteri sada točno odgovaraju stupcima iz tvoje SQL skripte
+    // State za filtere (prazan string znači da je odabrana opcija "Sve")
     const [filters, setFilters] = useState({
         naziv: '',
         tip: '',
@@ -20,7 +19,6 @@ const ResourcesTable = () => {
     useEffect(() => {
         const fetchResursi = async () => {
             try {
-                // Tvoja potvrđena API ruta
                 const response = await api.get('/api/resursi');
                 setResursi(response.data);
                 setLoading(false);
@@ -30,9 +28,34 @@ const ResourcesTable = () => {
                 setLoading(false);
             }
         };
-
         fetchResursi();
     }, []);
+
+    // Dinamičko izvlačenje jedinstvenih vrijednosti za svaki stupac iz izvornih podataka
+    const uniqueValues = useMemo(() => {
+        const columns = ['naziv', 'tip', 'opis', 'kapacitet', 'status'];
+        const uniques = {};
+
+        columns.forEach(col => {
+            const values = resursi
+                .map(item => item[col])
+                // Filtriramo null, undefined i prazne stringove kako nam se ne bi pojavile prazne opcije u dropdownu
+                .filter(val => val !== null && val !== undefined && val !== '')
+                .map(val => String(val));
+
+            // Set automatski briše sve duplikate, a [...new Set] to vraća natrag u normalno polje (Array)
+            uniques[col] = [...new Set(values)].sort((a, b) => {
+                // Za kapacitet koristimo numeričko sortiranje kako bi opcije išle redom (1, 2, 10...)
+                if (col === 'kapacitet') {
+                    return (Number(a) || 0) - (Number(b) || 0);
+                }
+                // Za ostala tekstualna polja koristimo standardno abecedno sortiranje
+                return a.localeCompare(b);
+            });
+        });
+
+        return uniques;
+    }, [resursi]);
 
     const requestSort = (key) => {
         let direction = 'asc';
@@ -46,15 +69,16 @@ const ResourcesTable = () => {
         setFilters({ ...filters, [key]: value });
     };
 
+    // Filtriranje i sortiranje podataka za prikaz u tablici
     const processedData = useMemo(() => {
         let data = [...resursi];
 
-        // 1. Filtriranje
+        // 1. Filtriranje - sada provjeravamo točnu jednakost jer imamo fiksne opcije
         Object.keys(filters).forEach(key => {
             if (filters[key]) {
                 data = data.filter(item =>
-                    // Koristimo (item[key] || '') kako bismo izbjegli greške ako su opis ili kapacitet NULL u bazi
-                    String(item[key] || '').toLowerCase().includes(filters[key].toLowerCase())
+                    // Pretvaramo u string radi sigurne usporedbe s vrijednošću iz <select> elementa
+                    String(item[key] || '') === filters[key]
                 );
             }
         });
@@ -65,11 +89,9 @@ const ResourcesTable = () => {
                 let aValue = a[sortConfig.key];
                 let bValue = b[sortConfig.key];
 
-                // Pretvaranje null vrijednosti u prazan string za sigurno sortiranje teksta
                 if (aValue === null) aValue = '';
                 if (bValue === null) bValue = '';
 
-                // Posebno pravilo za kapacitet kako bi se sortirao kao broj (npr. da 10 bude veće od 2, a ne obrnuto zbog abecede)
                 if (sortConfig.key === 'kapacitet') {
                     aValue = Number(aValue) || 0;
                     bValue = Number(bValue) || 0;
@@ -98,7 +120,7 @@ const ResourcesTable = () => {
                             { key: 'kapacitet', label: 'Kapacitet' },
                             { key: 'status', label: 'Status' }
                         ].map((col) => (
-                            <th key={col.key} className="p-3 font-semibold text-slate-700 text-sm align-top">
+                            <th key={col.key} className="p-3 font-semibold text-slate-700 text-sm align-top min-w-[150px]">
                                 <div
                                     className="flex items-center gap-1 cursor-pointer hover:text-blue-600 mb-2 transition-colors select-none"
                                     onClick={() => requestSort(col.key)}
@@ -108,13 +130,21 @@ const ResourcesTable = () => {
                                         {sortConfig?.key === col.key ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}
                                     </span>
                                 </div>
-                                <input
-                                    type="text"
-                                    placeholder={`Filtriraj...`}
+
+                                {/* Zamijenjen <input> s modernim <select> padajućim izbornikom */}
+                                <select
                                     value={filters[col.key]}
                                     onChange={(e) => handleFilterChange(col.key, e.target.value)}
-                                    className="w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-normal shadow-sm"
-                                />
+                                    className="w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-normal shadow-sm bg-white text-slate-700 cursor-pointer"
+                                >
+                                    <option value="">Sve</option>
+                                    {uniqueValues[col.key]?.map((val) => (
+                                        <option key={val} value={val}>
+                                            {/* Ako se radi o stupcu 'tip', zamjenjujemo podvlake razmacima radi ljepšeg prikaza */}
+                                            {col.key === 'tip' ? val.replace(/_/g, ' ') : val}
+                                        </option>
+                                    ))}
+                                </select>
                             </th>
                         ))}
                     </tr>
@@ -125,10 +155,8 @@ const ResourcesTable = () => {
                             <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                                 <td className="p-3 text-sm font-medium text-slate-800">{item.naziv}</td>
                                 <td className="p-3 text-sm text-slate-600 capitalize">
-                                    {/* Mijenjamo donju crtu u razmak za ljepši prikaz (npr. prostor_s_opremom -> prostor s opremom) */}
                                     {item.tip.replace(/_/g, ' ')}
                                 </td>
-                                {/* Ograničavamo širinu opisa kako ne bi razbio dizajn tablice ako je predugačak */}
                                 <td className="p-3 text-sm text-slate-500 max-w-xs truncate" title={item.opis || ''}>
                                     {item.opis || '-'}
                                 </td>
@@ -136,7 +164,6 @@ const ResourcesTable = () => {
                                     {item.kapacitet !== null ? item.kapacitet : '-'}
                                 </td>
                                 <td className="p-3 text-sm">
-                                    {/* Dinamične boje ovisno o statusu u bazi */}
                                     <span className={`px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider ${item.status === 'aktivan' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                                         }`}>
                                         {item.status}
@@ -147,7 +174,7 @@ const ResourcesTable = () => {
                     ) : (
                         <tr>
                             <td colSpan="5" className="p-8 text-center text-slate-500">
-                                Nema pronađenih resursa koji odgovaraju filterima.
+                                Nema pronađenih resursa koji odgovaraju odabranim filterima.
                             </td>
                         </tr>
                     )}
