@@ -155,7 +155,22 @@ const ReservationsTable = () => {
             fetchRezervacije();
         } catch (err) {
             console.error("Greška pri spremanju:", err);
-            alert('Došlo je do greške prilikom spremanja rezervacije.');
+
+            // Provjera postoji li specifičan odgovor od strane backenda
+            if (err.response && err.response.data && err.response.data.greska) {
+                const porukaGreske = err.response.data.greska;
+                const razlogZabrane = err.response.data.razlog;
+
+                // Ako backend šalje i dodatni razlog (npr. kod validacije zabrane pristupa)
+                if (razlogZabrane) {
+                    alert(`${porukaGreske}\nRazlog: ${razlogZabrane}`);
+                } else {
+                    alert(porukaGreske);
+                }
+            } else {
+                // Fallback u slučaju da je backend nedostupan ili se dogodio neočekivani pad mreže
+                alert('Došlo je do neočekivane greške prilikom spremanja rezervacije.');
+            }
         }
     };
 
