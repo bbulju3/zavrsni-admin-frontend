@@ -73,9 +73,10 @@ const Dashboard = () => {
                 </button>
             </aside>
 
-            {/* ISPRAVAK JE OVDJE: Dodano je min-w-0 i overflow-x-auto na main tag */}
-            <main className="flex-1 min-w-0 p-8 overflow-x-auto">
-                <header className="flex justify-between items-center border-b border-slate-200 pb-5 mb-8 min-w-max">
+            {/* ISPRAVAK: main ima flex-1 i min-w-0 da zadrži oblik, ali nema overflow-x-auto */}
+            <main className="flex-1 min-w-0 p-8 flex flex-col h-screen overflow-y-auto">
+                {/* ISPRAVAK: Maknut je min-w-max iz headera kako se ne bi rastezao u beskonačnost */}
+                <header className="flex justify-between items-center border-b border-slate-200 pb-5 mb-8 shrink-0">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900">
                             {activeTab === 'home' && 'Dobrodošli natrag!'}
@@ -102,7 +103,6 @@ const Dashboard = () => {
 
                 {activeTab === 'home' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-
                         <button
                             onClick={() => setActiveTab('resursi')}
                             className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-500 hover:shadow-md transition-all text-left flex flex-col justify-between group cursor-pointer min-h-[150px]"
@@ -168,18 +168,19 @@ const Dashboard = () => {
                                 <p className="text-sm text-slate-500 mt-1">Zatvaranje trenutne administratorske sesije i siguran povratak na formu za prijavu.</p>
                             </div>
                         </button>
-
                     </div>
                 )}
 
-                {/* Okvir za tablice s dodatnim min-w-full da osiguramo pravilan prikaz ako je tablica vrlo široka */}
-                <div className="w-full">
-                    {activeTab === 'resursi' && <ResourcesTable />}
-                    {activeTab === 'korisnici' && <UsersTable />}
-                    {activeTab === 'administratori' && <AdminsTable />}
-                    {activeTab === 'rezervacije' && <ReservationsTable />}
-                    {activeTab === 'zabrane' && <ZabraneTable />}
-                </div>
+                {/* ISPRAVAK: SADA JE SAMO OVAJ KONTEJNER ZADUŽEN ZA OVERFLOW TABLICA */}
+                {activeTab !== 'home' && (
+                    <div className="w-full overflow-x-auto pb-4 rounded-lg bg-white shadow-sm border border-slate-200">
+                        {activeTab === 'resursi' && <ResourcesTable />}
+                        {activeTab === 'korisnici' && <UsersTable />}
+                        {activeTab === 'administratori' && <AdminsTable />}
+                        {activeTab === 'rezervacije' && <ReservationsTable />}
+                        {activeTab === 'zabrane' && <ZabraneTable />}
+                    </div>
+                )}
 
             </main>
         </div>
