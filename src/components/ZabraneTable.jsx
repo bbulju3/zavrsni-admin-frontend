@@ -118,41 +118,12 @@ const ZabraneTable = () => {
         setIsModalOpen(true);
     };
 
-    // Pomoćna funkcija za izvlačenje ID-a iz JWT tokena
-    const getLoggedAdminId = () => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) return null;
-        try {
-            // JWT token se sastoji od 3 dijela odvojena točkom. Payload je srednji dio.
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-
-            const payload = JSON.parse(jsonPayload);
-            // Ovisno o tome kako si nazvao ključ u payloadu na backendu (id, admin_id, sub...)
-            return payload.id || payload.admin_id;
-        } catch (e) {
-            console.error("Greška pri dekodiranju tokena:", e);
-            return null;
-        }
-    };
-
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Automatski dohvaćamo ID prijavljenog administratora
-            const loggedAdminId = getLoggedAdminId();
-
-            if (!loggedAdminId) {
-                alert("Nije moguće utvrditi vaš identitet. Molimo prijavite se ponovno.");
-                return;
-            }
-
+            // Frontend više ne šalje administrator_id
             const payload = {
                 korisnik_id: formData.korisnik_id,
-                administrator_id: loggedAdminId, // Ovdje ga automatski injektiramo!
                 resurs_id: formData.razina_zabrane === 'resurs' ? formData.resurs_id : null,
                 tip_resursa: formData.razina_zabrane === 'tip' ? formData.tip_resursa : null,
                 razlog: formData.razlog,
