@@ -78,11 +78,11 @@ const Dashboard = () => {
                             {activeTab === 'zabrane' && 'Upravljanje zabranama pristupa'} {/* 3. NASLOV */}
                         </h1>
                         <p className="text-sm text-slate-500">
-                            {activeTab === 'resursi' && 'Pregled, filtriranje i upravljanje imovinom.'}
-                            {activeTab === 'korisnici' && 'Administracija korisničkih računa.'}
-                            {activeTab === 'administratori' && 'Pregled i upravljanje administratorskim pristupom.'}
-                            {activeTab === 'rezervacije' && 'Praćenje i izmjena rasporeda korištenja resursa.'}
-                            {activeTab === 'zabrane' && 'Pregled i izricanje privremenih ili trajnih zabrana korisnicima.'} {/* 3. OPIS */}
+                            {activeTab === 'resursi' && 'Pregled i upravljanje resursima.'}
+                            {activeTab === 'korisnici' && 'Pregled i upravljanje korisničkim računima.'}
+                            {activeTab === 'administratori' && 'Pregled i upravljanje administratorskim računima.'}
+                            {activeTab === 'rezervacije' && 'Pregled i upravljanje rezervacijama resursa.'}
+                            {activeTab === 'zabrane' && 'Pregled i upravljanje korisničkim zabranama.'} {/* 3. OPIS */}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
