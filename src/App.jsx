@@ -110,7 +110,7 @@ const Dashboard = () => {
                             <div>
                                 <span className="text-3xl mb-3 block">📦</span>
                                 <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Resursi</h3>
-                                <p className="text-sm text-slate-500 mt-1">Pregled pregledne tablice, dodavanje novih prostora, opreme i vozila te ažuriranje kapaciteta.</p>
+                                <p className="text-sm text-slate-500 mt-1">Pregled tablice resursa, dodavanje novih i ažuriranje postojećih resursa.</p>
                             </div>
                         </button>
 
@@ -121,7 +121,7 @@ const Dashboard = () => {
                             <div>
                                 <span className="text-3xl mb-3 block">👥</span>
                                 <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Korisnici</h3>
-                                <p className="text-sm text-slate-500 mt-1">Upravljanje računima registriranih korisnika sustava i provjera njihovih statusa.</p>
+                                <p className="text-sm text-slate-500 mt-1">Pregled tablice korisnika, dodavanje novih i ažuriranje postojećih korisnika.</p>
                             </div>
                         </button>
 
@@ -132,7 +132,7 @@ const Dashboard = () => {
                             <div>
                                 <span className="text-3xl mb-3 block">👔</span>
                                 <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Administratori</h3>
-                                <p className="text-sm text-slate-500 mt-1">Pregled i postavljanje administratorskih ovlasti i računa s pristupom panelu.</p>
+                                <p className="text-sm text-slate-500 mt-1">Pregled tablice administratora, dodavanje novih i ažuriranje postojećih administratora.</p>
                             </div>
                         </button>
 
@@ -143,7 +143,7 @@ const Dashboard = () => {
                             <div>
                                 <span className="text-3xl mb-3 block">📅</span>
                                 <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Rezervacije</h3>
-                                <p className="text-sm text-slate-500 mt-1">Praćenje svih rezerviranih termina, odobravanje i koordinacija dodijeljenih dobara.</p>
+                                <p className="text-sm text-slate-500 mt-1">Pregled tablice rezervacija, dodavanje novih i ažuriranje postojećih rezervacija.</p>
                             </div>
                         </button>
 
@@ -154,7 +154,7 @@ const Dashboard = () => {
                             <div>
                                 <span className="text-3xl mb-3 block">🚫</span>
                                 <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Zabrane Pristupa</h3>
-                                <p className="text-sm text-slate-500 mt-1">Restrikcije i restriktivne mjere nad korisnicima po resursu ili po tipu resursa.</p>
+                                <p className="text-sm text-slate-500 mt-1">Pregled tablice zabrana pristupa, dodavanje novih i ažuriranje postojećih zabrana pristupa.</p>
                             </div>
                         </button>
 
@@ -165,7 +165,7 @@ const Dashboard = () => {
                             <div>
                                 <span className="text-3xl mb-3 block">🚪</span>
                                 <h3 className="text-lg font-bold text-slate-800 group-hover:text-red-600 transition-colors">Sigurna odjava</h3>
-                                <p className="text-sm text-slate-500 mt-1">Zatvaranje trenutne administratorske sesije i siguran povratak na formu za prijavu.</p>
+                                <p className="text-sm text-slate-500 mt-1">Zatvaranje trenutne administratorske sesije i povratak na formu za prijavu.</p>
                             </div>
                         </button>
 
