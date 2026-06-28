@@ -102,17 +102,29 @@ const ResourcesTable = () => {
         }
     };
 
-    // 5. LOGIKA ZA TABLICU (Ista kao i ranije)
+    // 5. LOGIKA ZA TABLICU
     const uniqueValues = useMemo(() => {
         const columns = ['naziv', 'tip', 'opis', 'kapacitet', 'status'];
         const uniques = {};
         columns.forEach(col => {
             const values = resursi
-                .map(item => item[col])
+                .map(item => {
+                    // Ako je kapacitet null, mapiramo ga u posebnu oznaku za filter
+                    if (col === 'kapacitet' && item[col] === null) {
+                        return 'bez_kapaciteta';
+                    }
+                    return item[col];
+                })
                 .filter(val => val !== null && val !== undefined && val !== '')
                 .map(val => String(val));
+
             uniques[col] = [...new Set(values)].sort((a, b) => {
-                if (col === 'kapacitet') return (Number(a) || 0) - (Number(b) || 0);
+                if (col === 'kapacitet') {
+                    // Postavljamo opciju "Bez kapaciteta" na vrh liste (odmah nakon "Sve")
+                    if (a === 'bez_kapaciteta') return -1;
+                    if (b === 'bez_kapaciteta') return 1;
+                    return (Number(a) || 0) - (Number(b) || 0);
+                }
                 return a.localeCompare(b);
             });
         });
@@ -129,10 +141,17 @@ const ResourcesTable = () => {
         let data = [...resursi];
         Object.keys(filters).forEach(key => {
             if (filters[key]) {
-                data = data.filter(item => String(item[key] || '') === filters[key]);
+                if (key === 'kapacitet' && filters[key] === 'bez_kapaciteta') {
+                    // Ako je odabrano "Bez kapaciteta", prikazujemo samo one s null vrijednošću
+                    data = data.filter(item => item[key] === null);
+                } else {
+                    data = data.filter(item => String(item[key] || '') === filters[key]);
+                }
             }
         });
+
         if (sortConfig !== null) {
+    // ... (ostatak tvoje logike za sortiranje ostaje potpuno isti)
             data.sort((a, b) => {
                 let aValue = a[sortConfig.key];
                 let bValue = b[sortConfig.key];
@@ -195,7 +214,12 @@ const ResourcesTable = () => {
                                         <option value="">Sve</option>
                                         {uniqueValues[col.key]?.map((val) => (
                                             <option key={val} value={val}>
-                                                {col.key === 'tip' ? val.replace(/_/g, ' ') : val}
+                                                {col.key === 'tip'
+                                                    ? val.replace(/_/g, ' ')
+                                                    : (col.key === 'kapacitet' && val === 'bez_kapaciteta'
+                                                        ? 'Bez kapaciteta (-)'
+                                                        : val)
+                                                }
                                             </option>
                                         ))}
                                     </select>
