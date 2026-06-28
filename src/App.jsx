@@ -9,7 +9,6 @@ import ZabraneTable from './components/ZabraneTable';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    // 1. Postavljamo 'home' kao zadani tab pri učitavanju/refreshu
     const [activeTab, setActiveTab] = useState('home');
 
     const handleLogout = () => {
@@ -19,14 +18,14 @@ const Dashboard = () => {
 
     return (
         <div className="flex min-h-screen bg-slate-100 text-slate-800">
-            <aside className="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-xl">
+            {/* Navigacija */}
+            <aside className="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-xl shrink-0">
                 <div>
                     <div className="text-xl font-bold text-white tracking-wider border-b border-slate-800 pb-4 mb-6">
                         ADMIN PANEL
                     </div>
 
                     <nav className="space-y-2">
-                        {/* Dodana opcija za povratak na početni landing page */}
                         <div
                             onClick={() => setActiveTab('home')}
                             className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'home' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
@@ -74,8 +73,9 @@ const Dashboard = () => {
                 </button>
             </aside>
 
-            <main className="flex-1 p-8">
-                <header className="flex justify-between items-center border-b border-slate-200 pb-5 mb-8">
+            {/* ISPRAVAK JE OVDJE: Dodano je min-w-0 i overflow-x-auto na main tag */}
+            <main className="flex-1 min-w-0 p-8 overflow-x-auto">
+                <header className="flex justify-between items-center border-b border-slate-200 pb-5 mb-8 min-w-max">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900">
                             {activeTab === 'home' && 'Dobrodošli natrag!'}
@@ -100,11 +100,9 @@ const Dashboard = () => {
                     </div>
                 </header>
 
-                {/* 2. LANDING PAGE GRID (Prikazuje se samo kada je aktivna Početna) */}
                 {activeTab === 'home' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
 
-                        {/* Kartica: Resursi */}
                         <button
                             onClick={() => setActiveTab('resursi')}
                             className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-500 hover:shadow-md transition-all text-left flex flex-col justify-between group cursor-pointer min-h-[150px]"
@@ -116,7 +114,6 @@ const Dashboard = () => {
                             </div>
                         </button>
 
-                        {/* Kartica: Korisnici */}
                         <button
                             onClick={() => setActiveTab('korisnici')}
                             className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-500 hover:shadow-md transition-all text-left flex flex-col justify-between group cursor-pointer min-h-[150px]"
@@ -128,7 +125,6 @@ const Dashboard = () => {
                             </div>
                         </button>
 
-                        {/* Kartica: Administratori */}
                         <button
                             onClick={() => setActiveTab('administratori')}
                             className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-500 hover:shadow-md transition-all text-left flex flex-col justify-between group cursor-pointer min-h-[150px]"
@@ -140,7 +136,6 @@ const Dashboard = () => {
                             </div>
                         </button>
 
-                        {/* Kartica: Rezervacije */}
                         <button
                             onClick={() => setActiveTab('rezervacije')}
                             className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-500 hover:shadow-md transition-all text-left flex flex-col justify-between group cursor-pointer min-h-[150px]"
@@ -152,7 +147,6 @@ const Dashboard = () => {
                             </div>
                         </button>
 
-                        {/* Kartica: Zabrane Pristupa */}
                         <button
                             onClick={() => setActiveTab('zabrane')}
                             className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-500 hover:shadow-md transition-all text-left flex flex-col justify-between group cursor-pointer min-h-[150px]"
@@ -164,7 +158,6 @@ const Dashboard = () => {
                             </div>
                         </button>
 
-                        {/* Kartica: Odjava */}
                         <button
                             onClick={handleLogout}
                             className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 hover:border-red-500 hover:shadow-md transition-all text-left flex flex-col justify-between group cursor-pointer min-h-[150px]"
@@ -179,12 +172,14 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                {/* Uvjetno renderiranje tablica */}
-                {activeTab === 'resursi' && <ResourcesTable />}
-                {activeTab === 'korisnici' && <UsersTable />}
-                {activeTab === 'administratori' && <AdminsTable />}
-                {activeTab === 'rezervacije' && <ReservationsTable />}
-                {activeTab === 'zabrane' && <ZabraneTable />}
+                {/* Okvir za tablice s dodatnim min-w-full da osiguramo pravilan prikaz ako je tablica vrlo široka */}
+                <div className="w-full">
+                    {activeTab === 'resursi' && <ResourcesTable />}
+                    {activeTab === 'korisnici' && <UsersTable />}
+                    {activeTab === 'administratori' && <AdminsTable />}
+                    {activeTab === 'rezervacije' && <ReservationsTable />}
+                    {activeTab === 'zabrane' && <ZabraneTable />}
+                </div>
 
             </main>
         </div>
