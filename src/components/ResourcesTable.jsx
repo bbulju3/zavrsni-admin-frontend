@@ -217,7 +217,7 @@ const ResourcesTable = () => {
                                                 {col.key === 'tip'
                                                     ? val.replace(/_/g, ' ')
                                                     : (col.key === 'kapacitet' && val === 'bez_kapaciteta'
-                                                        ? 'Bez kapaciteta (-)'
+                                                        ? 'Bez kapaciteta'
                                                         : val)
                                                 }
                                             </option>
