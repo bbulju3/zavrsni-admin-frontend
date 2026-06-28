@@ -15,6 +15,7 @@ const AdminsTable = () => {
     const [modalMode, setModalMode] = useState('create');
     const [formData, setFormData] = useState(initialFormState);
     const [deleteAlert, setDeleteAlert] = useState({ isOpen: false, id: null });
+    const [formError, setFormError] = useState('');
 
     // 3. DOHVAĆANJE PODATAKA
     const fetchAdministratori = async () => {
@@ -45,6 +46,7 @@ const AdminsTable = () => {
     const openCreateModal = () => {
         setModalMode('create');
         setFormData(initialFormState);
+        setFormError(''); // Očisti grešku kod novog otvaranja
         setIsModalOpen(true);
     };
 
@@ -57,11 +59,13 @@ const AdminsTable = () => {
             email: item.email,
             lozinka: ''
         });
+        setFormError(''); // Očisti grešku kod novog otvaranja
         setIsModalOpen(true);
     };
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
+        setFormError('');
         try {
             if (modalMode === 'create') {
                 await api.post('/api/administratori', formData);
@@ -76,7 +80,20 @@ const AdminsTable = () => {
             fetchAdministratori();
         } catch (err) {
             console.error("Greška pri spremanju:", err);
-            alert('Došlo je do greške prilikom spremanja administratora.');
+
+            // Axios sprema odgovor s backenda u err.response.data
+            if (err.response && err.response.data) {
+                // Pokušavamo uhvatiti standardne ključeve (message, error) ili cijeli string
+                const backendPoruka = err.response.data.message || err.response.data.error || err.response.data;
+
+                if (typeof backendPoruka === 'string') {
+                    setFormError(backendPoruka);
+                } else {
+                    setFormError('Podaci nisu u ispravnom formatu. Provjerite email i lozinku.');
+                }
+            } else {
+                setFormError('Došlo je do greške prilikom komunikacije sa serverom.');
+            }
         }
     };
 
@@ -222,8 +239,15 @@ const AdminsTable = () => {
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
                         <h2 className="text-xl font-bold text-slate-800 mb-4">
-                            {modalMode === 'create' ? 'Dodaj novog administratora' : 'Uredi administratora'}
+                            {modalMode === 'create' ? 'Dodaj novog korisnika' : 'Uredi korisnika'}
                         </h2>
+
+                        {/* DODANO: Prikaz greške s backenda */}
+                        {formError && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-medium">
+                                {formError}
+                            </div>
+                        )}
 
                         <form onSubmit={handleFormSubmit} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">

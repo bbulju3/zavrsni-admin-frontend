@@ -15,6 +15,7 @@ const UsersTable = () => {
     const [modalMode, setModalMode] = useState('create');
     const [formData, setFormData] = useState(initialFormState);
     const [deleteAlert, setDeleteAlert] = useState({ isOpen: false, id: null });
+    const [formError, setFormError] = useState('');
 
     // 3. DOHVAĆANJE PODATAKA
     const fetchKorisnici = async () => {
@@ -45,6 +46,7 @@ const UsersTable = () => {
     const openCreateModal = () => {
         setModalMode('create');
         setFormData(initialFormState);
+        setFormError(''); // Očisti grešku kod novog otvaranja
         setIsModalOpen(true);
     };
 
@@ -55,25 +57,44 @@ const UsersTable = () => {
             ime: item.ime,
             prezime: item.prezime,
             email: item.email,
-            lozinka: '' // Ostavljamo prazno, backend bi trebao ignorirati ako se ne pošalje nova lozinka
+            lozinka: ''
         });
+        setFormError(''); // Očisti grešku kod novog otvaranja
         setIsModalOpen(true);
     };
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
+        setFormError(''); // Očisti prethodnu grešku pri novom pokušaju slanja
+
         try {
-            // Frontend šalje 'lozinka', backend će to obraditi
             if (modalMode === 'create') {
-                await api.post('/api/korisnici', formData);
+                await api.post('/api/korisnici', formData); // Za AdminsTable ovdje ide /api/administratori
             } else if (modalMode === 'edit') {
-                await api.put(`/api/korisnici/${formData.id}`, formData);
+                const payload = { ...formData };
+                if (!payload.lozinka) {
+                    delete payload.lozinka;
+                }
+                await api.put(`/api/korisnici/${formData.id}`, payload); // Za AdminsTable ovdje ide /api/administratori...
             }
             setIsModalOpen(false);
-            fetchKorisnici();
+            fetchKorisnici(); // Za AdminsTable ovdje ide fetchAdministratori()
         } catch (err) {
             console.error("Greška pri spremanju:", err);
-            alert('Došlo je do greške prilikom spremanja korisnika.');
+
+            // Axios sprema odgovor s backenda u err.response.data
+            if (err.response && err.response.data) {
+                // Pokušavamo uhvatiti standardne ključeve (message, error) ili cijeli string
+                const backendPoruka = err.response.data.message || err.response.data.error || err.response.data;
+
+                if (typeof backendPoruka === 'string') {
+                    setFormError(backendPoruka);
+                } else {
+                    setFormError('Podaci nisu u ispravnom formatu. Provjerite email i lozinku.');
+                }
+            } else {
+                setFormError('Došlo je do greške prilikom komunikacije sa serverom.');
+            }
         }
     };
 
@@ -223,6 +244,13 @@ const UsersTable = () => {
                         <h2 className="text-xl font-bold text-slate-800 mb-4">
                             {modalMode === 'create' ? 'Dodaj novog korisnika' : 'Uredi korisnika'}
                         </h2>
+
+                        {/* DODANO: Prikaz greške s backenda */}
+                        {formError && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-medium">
+                                {formError}
+                            </div>
+                        )}
 
                         <form onSubmit={handleFormSubmit} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
