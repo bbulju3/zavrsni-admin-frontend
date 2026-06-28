@@ -81,8 +81,8 @@ const Dashboard = () => {
                             {activeTab === 'resursi' && 'Pregled i upravljanje resursima.'}
                             {activeTab === 'korisnici' && 'Pregled i upravljanje korisničkim računima.'}
                             {activeTab === 'administratori' && 'Pregled i upravljanje administratorskim računima.'}
-                            {activeTab === 'rezervacije' && 'Pregled i upravljanje rezervacijama resursa.'}
-                            {activeTab === 'zabrane' && 'Pregled i upravljanje korisničkim zabranama.'} {/* 3. OPIS */}
+                            {activeTab === 'rezervacije' && 'Pregled i upravljanje rezervacijama.'}
+                            {activeTab === 'zabrane' && 'Pregled i upravljanje zabranama pristupa.'} {/* 3. OPIS */}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
