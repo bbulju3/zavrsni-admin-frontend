@@ -10,6 +10,7 @@ import ZabraneTable from './components/ZabraneTable';
 const Dashboard = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('home');
+    const [isCollapsed, setIsCollapsed] = useState(false); // Novo stanje za kolapsiranje
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
@@ -18,81 +19,105 @@ const Dashboard = () => {
 
     return (
         <div className="flex min-h-screen bg-slate-100 text-slate-800">
-            {/* Navigacija */}
-            <aside className="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-xl shrink-0">
+            {/* Navigacija - dinamična širina i tranzicija */}
+            <aside className={`${isCollapsed ? 'w-20 p-3' : 'w-64 p-5'} bg-slate-950 text-slate-200 flex flex-col justify-between shadow-xl shrink-0 transition-all duration-300 ease-in-out`}>
                 <div>
-                    <div className="text-xl font-bold text-white tracking-wider border-b border-slate-800 pb-4 mb-6">
-                        ADMIN PANEL
+                    <div className={`font-bold text-white tracking-wider border-b border-slate-800 pb-4 mb-6 flex items-center ${isCollapsed ? 'justify-center text-sm' : 'text-xl'}`}>
+                        {isCollapsed ? 'AP' : 'ADMIN PANEL'}
                     </div>
 
                     <nav className="space-y-2">
                         <div
                             onClick={() => setActiveTab('home')}
-                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'home' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
+                            title="Početna"
+                            className={`flex items-center ${isCollapsed ? 'justify-center px-0' : 'px-4'} py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'home' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
                         >
-                            🏠 Početna
+                            <span className="text-xl">🏠</span>
+                            {!isCollapsed && <span className="ml-3">Početna</span>}
                         </div>
                         <div
                             onClick={() => setActiveTab('resursi')}
-                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'resursi' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
+                            title="Resursi"
+                            className={`flex items-center ${isCollapsed ? 'justify-center px-0' : 'px-4'} py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'resursi' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
                         >
-                            📦 Resursi
+                            <span className="text-xl">📦</span>
+                            {!isCollapsed && <span className="ml-3">Resursi</span>}
                         </div>
                         <div
                             onClick={() => setActiveTab('korisnici')}
-                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'korisnici' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
+                            title="Korisnici"
+                            className={`flex items-center ${isCollapsed ? 'justify-center px-0' : 'px-4'} py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'korisnici' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
                         >
-                            👥 Korisnici
+                            <span className="text-xl">👥</span>
+                            {!isCollapsed && <span className="ml-3">Korisnici</span>}
                         </div>
                         <div
                             onClick={() => setActiveTab('administratori')}
-                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'administratori' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
+                            title="Administratori"
+                            className={`flex items-center ${isCollapsed ? 'justify-center px-0' : 'px-4'} py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'administratori' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
                         >
-                            👔 Administratori
+                            <span className="text-xl">👔</span>
+                            {!isCollapsed && <span className="ml-3">Administratori</span>}
                         </div>
                         <div
                             onClick={() => setActiveTab('rezervacije')}
-                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'rezervacije' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
+                            title="Rezervacije"
+                            className={`flex items-center ${isCollapsed ? 'justify-center px-0' : 'px-4'} py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'rezervacije' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
                         >
-                            📅 Rezervacije
+                            <span className="text-xl">📅</span>
+                            {!isCollapsed && <span className="ml-3">Rezervacije</span>}
                         </div>
                         <div
                             onClick={() => setActiveTab('zabrane')}
-                            className={`px-4 py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'zabrane' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
+                            title="Zabrane Pristupa"
+                            className={`flex items-center ${isCollapsed ? 'justify-center px-0' : 'px-4'} py-2.5 rounded-xl font-medium cursor-pointer transition-colors ${activeTab === 'zabrane' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'}`}
                         >
-                            🚫 Zabrane Pristupa
+                            <span className="text-xl">🚫</span>
+                            {!isCollapsed && <span className="ml-3 overflow-hidden whitespace-nowrap">Zabrane Pristupa</span>}
                         </div>
                     </nav>
                 </div>
 
                 <button
                     onClick={handleLogout}
-                    className="w-full bg-slate-900 hover:bg-red-900/40 hover:text-red-400 text-slate-400 font-semibold py-2.5 px-4 rounded-xl border border-slate-800 hover:border-red-900/60 transition-all cursor-pointer"
+                    title="Odjava"
+                    className={`w-full flex items-center justify-center bg-slate-900 hover:bg-red-900/40 hover:text-red-400 text-slate-400 font-semibold py-2.5 ${isCollapsed ? 'px-0' : 'px-4'} rounded-xl border border-slate-800 hover:border-red-900/60 transition-all cursor-pointer`}
                 >
-                    🚪 Odjava
+                    <span className="text-xl">🚪</span>
+                    {!isCollapsed && <span className="ml-3">Odjava</span>}
                 </button>
             </aside>
 
-            {/* ISPRAVAK JE OVDJE: Dodano je min-w-0 i overflow-x-auto na main tag */}
             <main className="flex-1 min-w-0 p-8 overflow-x-auto">
                 <header className="flex justify-between items-center border-b border-slate-200 pb-5 mb-8 min-w-max">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900">
-                            {activeTab === 'home' && 'Dobrodošli natrag!'}
-                            {activeTab === 'resursi' && 'Upravljanje resursima'}
-                            {activeTab === 'korisnici' && 'Upravljanje korisnicima'}
-                            {activeTab === 'administratori' && 'Upravljanje administratorima'}
-                            {activeTab === 'rezervacije' && 'Upravljanje rezervacijama'}
-                            {activeTab === 'zabrane' && 'Upravljanje zabranama pristupa'}
-                        </h1>
-                        <p className="text-sm text-slate-500">
-                            {activeTab === 'home' && 'Odaberite sekciju ili tablicu kojom želite upravljati.'}
-                            {activeTab === 'resursi' && 'Pregled i upravljanje resursima.'}
-                            {activeTab === 'korisnici' && 'Pregled i upravljanje korisničkim računima.'}
-                            {activeTab === 'administratori' && 'Pregled i upravljanje administratorskim računima.'}
-                            {activeTab === 'rezervacije' && 'Pregled i upravljanje rezervacijama.'}
-                            {activeTab === 'zabrane' && 'Pregled i upravljanje zabranama pristupa.'}
-                        </p>
+                    <div className="flex items-center gap-4">
+                        {/* Gumb za sažimanje/proširivanje izbornika */}
+                        <button
+                            onClick={() => setIsCollapsed(!isCollapsed)}
+                            className="p-2 bg-slate-200/60 hover:bg-slate-300 rounded-lg text-slate-700 transition-colors cursor-pointer flex items-center justify-center"
+                            title={isCollapsed ? "Proširi alatnu traku" : "Sakrij alatnu traku"}
+                        >
+                            <span className="text-xl leading-none">☰</span>
+                        </button>
+
+                        <div>
+                            <h1 className="text-2xl font-bold text-slate-900">
+                                {activeTab === 'home' && 'Dobrodošli natrag!'}
+                                {activeTab === 'resursi' && 'Upravljanje resursima'}
+                                {activeTab === 'korisnici' && 'Upravljanje korisnicima'}
+                                {activeTab === 'administratori' && 'Upravljanje administratorima'}
+                                {activeTab === 'rezervacije' && 'Upravljanje rezervacijama'}
+                                {activeTab === 'zabrane' && 'Upravljanje zabranama pristupa'}
+                            </h1>
+                            <p className="text-sm text-slate-500">
+                                {activeTab === 'home' && 'Odaberite sekciju ili tablicu kojom želite upravljati.'}
+                                {activeTab === 'resursi' && 'Pregled i upravljanje resursima.'}
+                                {activeTab === 'korisnici' && 'Pregled i upravljanje korisničkim računima.'}
+                                {activeTab === 'administratori' && 'Pregled i upravljanje administratorskim računima.'}
+                                {activeTab === 'rezervacije' && 'Pregled i upravljanje rezervacijama.'}
+                                {activeTab === 'zabrane' && 'Pregled i upravljanje zabranama pristupa.'}
+                            </p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -172,7 +197,6 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                {/* Okvir za tablice s dodatnim min-w-full da osiguramo pravilan prikaz ako je tablica vrlo široka */}
                 <div className="w-full">
                     {activeTab === 'resursi' && <ResourcesTable />}
                     {activeTab === 'korisnici' && <UsersTable />}
