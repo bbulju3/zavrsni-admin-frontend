@@ -252,7 +252,7 @@ const AdminsTable = () => {
                             </div>
                         )}
 
-                        <form onSubmit={handleFormSubmit} className="space-y-4">
+                        <form onSubmit={handleFormSubmit} className="space-y-4" noValidate>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1">Ime <span className="text-red-500">*</span></label>
