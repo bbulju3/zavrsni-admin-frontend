@@ -83,13 +83,16 @@ const AdminsTable = () => {
 
             // Axios sprema odgovor s backenda u err.response.data
             if (err.response && err.response.data) {
-                // Pokušavamo uhvatiti standardne ključeve (message, error) ili cijeli string
-                const backendPoruka = err.response.data.message || err.response.data.error || err.response.data;
+                // DODANO: Prvo tražimo ključ 'greska' koji šalje tvoj Node.js backend
+                const backendPoruka = err.response.data.greska || err.response.data.message || err.response.data.error || err.response.data;
 
                 if (typeof backendPoruka === 'string') {
                     setFormError(backendPoruka);
+                } else if (backendPoruka && typeof backendPoruka === 'object' && backendPoruka.greska) {
+                    // Dodatni osigurač u slučaju da objekt prođe na neki drugi način
+                    setFormError(backendPoruka.greska);
                 } else {
-                    setFormError('Podaci nisu u ispravnom formatu. Provjerite email i lozinku.');
+                    setFormError('Došlo je do greške prilikom obrade podataka. Provjerite unos.');
                 }
             } else {
                 setFormError('Došlo je do greške prilikom komunikacije sa serverom.');
