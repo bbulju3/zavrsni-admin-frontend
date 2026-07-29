@@ -2,25 +2,41 @@ import axios from 'axios';
 
 // Kreiramo instancu axiosa s osnovnim postavkama
 const api = axios.create({
-    // Za sada ciljamo tvoj lokalni backend server. 
-    // Kasnije, kada backend staviš na Vercel, ovdje će ići taj URL (npr. 'https://tvoj-backend.vercel.app')
     baseURL: 'https://zavrsni-rad-six-sage.vercel.app'
 });
 
-// Interceptor: Ova funkcija se automatski pokreće PRIJE svakog API zahtjeva
+// REQUEST Interceptor: Dodaje token prije svakog zahtjeva
 api.interceptors.request.use(
     (config) => {
-        // Pokušavamo dohvatiti token iz lokalne memorije preglednika (localStorage)
         const token = localStorage.getItem('adminToken');
-
-        // Ako token postoji, automatski ga dodajemo u Authorization header
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
     (error) => {
-        // Ako dođe do greške pri slanju zahtjeva, samo ju prosljeđujemo dalje
+        return Promise.reject(error);
+    }
+);
+
+// RESPONSE Interceptor: Hvata greške iz odgovora servera
+api.interceptors.response.use(
+    (response) => {
+        // Ako je odgovor uspješan (status 2xx), samo ga proslijedi dalje
+        return response;
+    },
+    (error) => {
+        // Ako server vrati 401 (Neovlašteno - token istekao ili ne postoji)
+        if (error.response && error.response.status === 401) {
+            // Obriši neispravan/istekao token iz memorije
+            localStorage.removeItem('adminToken');
+
+            // Preusmjeri korisnika na login stranicu
+            // Koristimo window.location jer smo izvan React Router konteksta
+            window.location.href = '/login';
+        }
+
+        // Ostale greške proslijedi komponentama da ih obrade (npr. prikažu toast poruku)
         return Promise.reject(error);
     }
 );

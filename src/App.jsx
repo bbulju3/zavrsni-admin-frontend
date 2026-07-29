@@ -210,13 +210,39 @@ const Dashboard = () => {
     );
 };
 
+// Ostatak tvog App.jsx koda (importovi i Dashboard komponenta) ostaje potpuno isti!
+
+// Nova komponenta koja štiti rute
+const ProtectedRoute = ({ children }) => {
+    const token = localStorage.getItem('adminToken');
+
+    // Ako token ne postoji, odmah ga preusmjeri na login
+    if (!token) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // Ako token postoji, prikaži traženu komponentu (u ovom slučaju Dashboard)
+    return children;
+};
+
 function App() {
     return (
         <Router>
             <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/" element={<Navigate to="/login" replace />} />
+
+                {/* Dashboard ruta je sada omotana u ProtectedRoute */}
+                <Route
+                    path="/dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <Dashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Defaultna ruta baca na dashboard, a ProtectedRoute će odlučiti ide li na login ili ga pušta */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
         </Router>
     );
