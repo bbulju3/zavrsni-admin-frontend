@@ -2,25 +2,19 @@ import { useState, useEffect, useMemo } from 'react';
 import api from '../api/axiosConfig';
 
 const ResourcesTable = () => {
-    // 1. STATE ZA PODATKE I TABLICU
     const [resursi, setResursi] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [sortConfig, setSortConfig] = useState(null);
     const [filters, setFilters] = useState({ naziv: '', tip: '', opis: '', kapacitet: '', status: '' });
 
-    // 2. STATE ZA MODALNE PROZORE (Pop-upove)
     const initialFormState = { naziv: '', tip: 'prostor', opis: '', kapacitet: '', status: 'aktivan' };
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState('create'); // 'create' ili 'edit'
+    const [modalMode, setModalMode] = useState('create');
     const [formData, setFormData] = useState(initialFormState);
 
-    // State za brisanje
     const [deleteAlert, setDeleteAlert] = useState({ isOpen: false, id: null });
 
-    // 3. DOHVAĆANJE PODATAKA
-
-    // Funkcija koju zovemo isključivo NAKON dodavanja, uređivanja ili brisanja kako bismo osvježili tablicu
     const fetchResursi = async () => {
         try {
             const response = await api.get('/api/resursi');
@@ -30,7 +24,6 @@ const ResourcesTable = () => {
         }
     };
 
-    // Inicijalno učitavanje čim se stranica otvori (odvojeno u vlastitu funkciju kako bi linter bio zadovoljan)
     useEffect(() => {
         const initialLoad = async () => {
             try {
@@ -46,10 +39,10 @@ const ResourcesTable = () => {
 
         initialLoad();
     }, []);
-    // 4. CRUD LOGIKA
+    
     const openCreateModal = () => {
         setModalMode('create');
-        setFormData(initialFormState); // Čistimo formu
+        setFormData(initialFormState);
         setIsModalOpen(true);
     };
 
@@ -60,7 +53,6 @@ const ResourcesTable = () => {
             naziv: item.naziv,
             tip: item.tip,
             opis: item.opis || '',
-            // Ako je kapacitet null, u formi prikazujemo prazan string
             kapacitet: item.kapacitet !== null ? item.kapacitet : '',
             status: item.status
         });
@@ -70,7 +62,6 @@ const ResourcesTable = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
 
-        // Priprema podataka (pretvaramo prazan kapacitet u null kako baza zahtijeva)
         const payload = {
             ...formData,
             kapacitet: formData.kapacitet === '' ? null : Number(formData.kapacitet)
@@ -80,11 +71,10 @@ const ResourcesTable = () => {
             if (modalMode === 'create') {
                 await api.post('/api/resursi', payload);
             } else if (modalMode === 'edit') {
-                // Za update šaljemo PUT (ili POST ako je tvoj backend tako podešen) na rutu s ID-jem
                 await api.put(`/api/resursi/${formData.id}`, payload);
             }
             setIsModalOpen(false);
-            fetchResursi(); // Osvježi tablicu nakon uspješne akcije
+            fetchResursi();
         } catch (err) {
             console.error("Greška pri spremanju:", err);
             alert('Došlo je do greške prilikom spremanja resursa.');
@@ -95,21 +85,19 @@ const ResourcesTable = () => {
         try {
             await api.delete(`/api/resursi/${deleteAlert.id}`);
             setDeleteAlert({ isOpen: false, id: null });
-            fetchResursi(); // Osvježi tablicu nakon brisanja
+            fetchResursi();
         } catch (err) {
             console.error("Greška pri brisanju:", err);
             alert('Došlo je do greške prilikom brisanja resursa.');
         }
     };
 
-    // 5. LOGIKA ZA TABLICU
     const uniqueValues = useMemo(() => {
         const columns = ['naziv', 'tip', 'opis', 'kapacitet', 'status'];
         const uniques = {};
         columns.forEach(col => {
             const values = resursi
                 .map(item => {
-                    // Ako je kapacitet null, mapiramo ga u posebnu oznaku za filter
                     if (col === 'kapacitet' && item[col] === null) {
                         return 'bez_kapaciteta';
                     }
@@ -120,7 +108,6 @@ const ResourcesTable = () => {
 
             uniques[col] = [...new Set(values)].sort((a, b) => {
                 if (col === 'kapacitet') {
-                    // Postavljamo opciju "Bez kapaciteta" na vrh liste (odmah nakon "Sve")
                     if (a === 'bez_kapaciteta') return -1;
                     if (b === 'bez_kapaciteta') return 1;
                     return (Number(a) || 0) - (Number(b) || 0);
@@ -142,7 +129,6 @@ const ResourcesTable = () => {
         Object.keys(filters).forEach(key => {
             if (filters[key]) {
                 if (key === 'kapacitet' && filters[key] === 'bez_kapaciteta') {
-                    // Ako je odabrano "Bez kapaciteta", prikazujemo samo one s null vrijednošću
                     data = data.filter(item => item[key] === null);
                 } else {
                     data = data.filter(item => String(item[key] || '') === filters[key]);
@@ -151,7 +137,6 @@ const ResourcesTable = () => {
         });
 
         if (sortConfig !== null) {
-    // ... (ostatak tvoje logike za sortiranje ostaje potpuno isti)
             data.sort((a, b) => {
                 let aValue = a[sortConfig.key];
                 let bValue = b[sortConfig.key];
@@ -174,7 +159,6 @@ const ResourcesTable = () => {
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
-            {/* Header tablice s prebačenim gumbom za dodavanje */}
             <div className="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-800">Popis svih resursa</h3>
                 <button
@@ -225,7 +209,6 @@ const ResourcesTable = () => {
                                     </select>
                                 </th>
                             ))}
-                            {/* Stupac za Akcije */}
                             <th className="p-3 font-semibold text-slate-700 text-sm align-top text-center w-28">
                                 Akcije
                             </th>
@@ -245,7 +228,6 @@ const ResourcesTable = () => {
                                             {item.status}
                                         </span>
                                     </td>
-                                    {/* Gumbi za Edit i Delete */}
                                     <td className="p-3 text-sm text-center">
                                         <div className="flex justify-center gap-2">
                                             <button
@@ -277,7 +259,6 @@ const ResourcesTable = () => {
                 </table>
             </div>
 
-            {/* MODAL ZA CREATE / UPDATE */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
@@ -333,7 +314,6 @@ const ResourcesTable = () => {
                 </div>
             )}
 
-            {/* MODAL ZA POTVRDU BRISANJA */}
             {deleteAlert.isOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm text-center">

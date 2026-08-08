@@ -2,14 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import api from '../api/axiosConfig';
 
 const AdminsTable = () => {
-    // 1. STATE ZA PODATKE I TABLICU
     const [administratori, setAdministratori] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [sortConfig, setSortConfig] = useState(null);
     const [filters, setFilters] = useState({ ime: '', prezime: '', email: '' });
 
-    // 2. STATE ZA MODALNE PROZORE
     const initialFormState = { ime: '', prezime: '', email: '', lozinka: '' };
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('create');
@@ -17,7 +15,6 @@ const AdminsTable = () => {
     const [deleteAlert, setDeleteAlert] = useState({ isOpen: false, id: null });
     const [formError, setFormError] = useState('');
 
-    // 3. DOHVAĆANJE PODATAKA
     const fetchAdministratori = async () => {
         try {
             const response = await api.get('/api/administratori');
@@ -42,11 +39,10 @@ const AdminsTable = () => {
         initialLoad();
     }, []);
 
-    // 4. CRUD LOGIKA
     const openCreateModal = () => {
         setModalMode('create');
         setFormData(initialFormState);
-        setFormError(''); // Očisti grešku kod novog otvaranja
+        setFormError('');
         setIsModalOpen(true);
     };
 
@@ -59,7 +55,7 @@ const AdminsTable = () => {
             email: item.email,
             lozinka: ''
         });
-        setFormError(''); // Očisti grešku kod novog otvaranja
+        setFormError('');
         setIsModalOpen(true);
     };
 
@@ -81,15 +77,12 @@ const AdminsTable = () => {
         } catch (err) {
             console.error("Greška pri spremanju:", err);
 
-            // Axios sprema odgovor s backenda u err.response.data
             if (err.response && err.response.data) {
-                // DODANO: Prvo tražimo ključ 'greska' koji šalje tvoj Node.js backend
                 const backendPoruka = err.response.data.greska || err.response.data.message || err.response.data.error || err.response.data;
 
                 if (typeof backendPoruka === 'string') {
                     setFormError(backendPoruka);
                 } else if (backendPoruka && typeof backendPoruka === 'object' && backendPoruka.greska) {
-                    // Dodatni osigurač u slučaju da objekt prođe na neki drugi način
                     setFormError(backendPoruka.greska);
                 } else {
                     setFormError('Došlo je do greške prilikom obrade podataka. Provjerite unos.');
@@ -111,7 +104,6 @@ const AdminsTable = () => {
         }
     };
 
-    // 5. LOGIKA ZA TABLICU
     const uniqueValues = useMemo(() => {
         const columns = ['ime', 'prezime', 'email'];
         const uniques = {};
@@ -237,7 +229,6 @@ const AdminsTable = () => {
                 </table>
             </div>
 
-            {/* MODAL ZA CREATE / UPDATE */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
@@ -245,7 +236,6 @@ const AdminsTable = () => {
                             {modalMode === 'create' ? 'Dodaj novog korisnika' : 'Uredi korisnika'}
                         </h2>
 
-                        {/* DODANO: Prikaz greške s backenda */}
                         {formError && (
                             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-medium">
                                 {formError}
@@ -289,7 +279,6 @@ const AdminsTable = () => {
                 </div>
             )}
 
-            {/* MODAL ZA POTVRDU BRISANJA */}
             {deleteAlert.isOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm text-center">

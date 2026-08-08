@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import api from '../api/axiosConfig';
 
 const ReservationsTable = () => {
-    // 1. STATE ZA PODATKE I TABLICU
     const [rezervacije, setRezervacije] = useState([]);
     const [korisnici, setKorisnici] = useState([]);
     const [resursi, setResursi] = useState([]);
@@ -11,7 +10,6 @@ const ReservationsTable = () => {
     const [error, setError] = useState('');
     const [sortConfig, setSortConfig] = useState(null);
 
-    // Filteri sada prate sve stupce
     const [filters, setFilters] = useState({
         korisnik_ime: '',
         resurs_naziv: '',
@@ -21,8 +19,6 @@ const ReservationsTable = () => {
         napomena_admina: ''
     });
 
-    // 2. STATE ZA MODALNE PROZORE (Pop-upove)
-    // Rješavamo tvoj zahtjev da se datum i vrijeme biraju odvojeno preko ugrađenih widgeta
     const initialFormState = {
         korisnik_id: '',
         resurs_id: '',
@@ -38,7 +34,6 @@ const ReservationsTable = () => {
     const [formData, setFormData] = useState(initialFormState);
     const [deleteAlert, setDeleteAlert] = useState({ isOpen: false, id: null });
 
-    // POMOĆNE FUNKCIJE ZA DATUME
     const parseDateString = (dateString) => {
         if (!dateString) return { datum: '', vrijeme: '' };
         const d = new Date(dateString);
@@ -53,11 +48,9 @@ const ReservationsTable = () => {
         if (!dateString) return '-';
         const d = new Date(dateString);
         const pad = (n) => n.toString().padStart(2, '0');
-        // Prikaz npr. 27.06.2026. 14:30
         return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}. ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
 
-    // 3. DOHVAĆANJE PODATAKA
     const fetchRezervacije = async () => {
         try {
             const response = await api.get('/api/rezervacije');
@@ -89,7 +82,6 @@ const ReservationsTable = () => {
         initialLoad();
     }, []);
 
-    // 4. PRIPREMA PODATAKA (Povezivanje ID-jeva s imenima za lakše filtriranje)
     const enrichedRezervacije = useMemo(() => {
         return rezervacije.map(rez => {
             const user = korisnici.find(k => k.id === rez.korisnik_id);
@@ -101,13 +93,11 @@ const ReservationsTable = () => {
                 resurs_naziv: resurs ? resurs.naziv || resurs.ime || `Resurs ${rez.resurs_id}` : `ID: ${rez.resurs_id}`,
                 pocetak_prikaz: formatDisplayDate(rez.vrijeme_pocetka),
                 zavrsetak_prikaz: formatDisplayDate(rez.vrijeme_zavrsetka),
-                // Praznu napomenu spremamo kao '-' radi lakšeg filtriranja praznih vrijednosti
                 napomena_admina: rez.napomena_admina || '-'
             };
         });
     }, [rezervacije, korisnici, resursi]);
 
-    // 5. CRUD LOGIKA
     const openCreateModal = () => {
         setModalMode('create');
         setFormData(initialFormState);
@@ -136,7 +126,6 @@ const ReservationsTable = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Spajamo datum i vrijeme u standardni MySQL format prije slanja na API
             const payload = {
                 korisnik_id: formData.korisnik_id,
                 resurs_id: formData.resurs_id,
@@ -156,19 +145,16 @@ const ReservationsTable = () => {
         } catch (err) {
             console.error("Greška pri spremanju:", err);
 
-            // Provjera postoji li specifičan odgovor od strane backenda
             if (err.response && err.response.data && err.response.data.greska) {
                 const porukaGreske = err.response.data.greska;
                 const razlogZabrane = err.response.data.razlog;
 
-                // Ako backend šalje i dodatni razlog (npr. kod validacije zabrane pristupa)
                 if (razlogZabrane) {
                     alert(`${porukaGreske}\nRazlog: ${razlogZabrane}`);
                 } else {
                     alert(porukaGreske);
                 }
             } else {
-                // Fallback u slučaju da je backend nedostupan ili se dogodio neočekivani pad mreže
                 alert('Došlo je do neočekivane greške prilikom spremanja rezervacije.');
             }
         }
@@ -185,7 +171,6 @@ const ReservationsTable = () => {
         }
     };
 
-    // 6. LOGIKA ZA TABLICU (Sortiranje i dinamički filteri)
     const uniqueValues = useMemo(() => {
         const columns = ['korisnik_ime', 'resurs_naziv', 'pocetak_prikaz', 'zavrsetak_prikaz', 'status', 'napomena_admina'];
         const uniques = {};
@@ -208,20 +193,17 @@ const ReservationsTable = () => {
     const processedData = useMemo(() => {
         let data = [...enrichedRezervacije];
 
-        // Primjena filtera
         Object.keys(filters).forEach(key => {
             if (filters[key]) {
                 data = data.filter(item => String(item[key] || '') === filters[key]);
             }
         });
 
-        // Primjena sortiranja
         if (sortConfig !== null) {
             data.sort((a, b) => {
                 let aValue = a[sortConfig.key];
                 let bValue = b[sortConfig.key];
 
-                // Posebna logika za datume (moramo sortirati po pravim datumima, a ne po formatiranom stringu "DD.MM.YYYY")
                 if (sortConfig.key === 'pocetak_prikaz') {
                     aValue = new Date(a.vrijeme_pocetka).getTime();
                     bValue = new Date(b.vrijeme_pocetka).getTime();
@@ -246,7 +228,6 @@ const ReservationsTable = () => {
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
-            {/* Header tablice sa plavim gumbom */}
             <div className="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-800">Popis svih rezervacija</h3>
                 <button
@@ -319,7 +300,6 @@ const ReservationsTable = () => {
                                     </td>
                                     <td className="p-3 text-sm text-center">
                                         <div className="flex justify-center gap-2">
-                                            {/* ZADRŽANO: Prikazuje se samo za status 'aktivna' */}
                                             {item.status === 'aktivna' ? (
                                                 <button
                                                     onClick={() => openEditModal(item)}
@@ -353,7 +333,6 @@ const ReservationsTable = () => {
                 </table>
             </div>
 
-            {/* MODAL ZA CREATE / UPDATE */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -383,7 +362,6 @@ const ReservationsTable = () => {
                                 </div>
                             </div>
 
-                            {/* RAZDVOJENI UNOS ZA DATUM I VRIJEME POCETKA */}
                             <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
                                 <label className="block text-sm font-bold text-slate-800 mb-2">Početak rezervacije <span className="text-red-500">*</span></label>
                                 <div className="grid grid-cols-2 gap-4">
@@ -398,7 +376,6 @@ const ReservationsTable = () => {
                                 </div>
                             </div>
 
-                            {/* RAZDVOJENI UNOS ZA DATUM I VRIJEME ZAVRSETKA */}
                             <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
                                 <label className="block text-sm font-bold text-slate-800 mb-2">Završetak rezervacije <span className="text-red-500">*</span></label>
                                 <div className="grid grid-cols-2 gap-4">
@@ -440,7 +417,6 @@ const ReservationsTable = () => {
                 </div>
             )}
 
-            {/* MODAL ZA POTVRDU BRISANJA */}
             {deleteAlert.isOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm text-center">

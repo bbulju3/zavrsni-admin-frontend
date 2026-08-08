@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import api from '../api/axiosConfig';
 
 const ZabraneTable = () => {
-    // 1. STATE ZA PODATKE I TABLICU
     const [zabrane, setZabrane] = useState([]);
     const [korisnici, setKorisnici] = useState([]);
     const [resursi, setResursi] = useState([]);
@@ -12,7 +11,6 @@ const ZabraneTable = () => {
     const [error, setError] = useState('');
     const [sortConfig, setSortConfig] = useState(null);
 
-    // Filteri za stupce
     const [filters, setFilters] = useState({
         korisnik_ime: '',
         administrator_ime: '',
@@ -21,11 +19,10 @@ const ZabraneTable = () => {
         status: ''
     });
 
-    // 2. STATE ZA MODALNE PROZORE
     const initialFormState = {
         korisnik_id: '',
         administrator_id: '', 
-        razina_zabrane: 'resurs', // 'resurs' ili 'tip' - pomoćni state za formu zbog CHECK constrainta
+        razina_zabrane: 'resurs',
         resurs_id: '',
         tip_resursa: '',
         razlog: '',
@@ -37,7 +34,6 @@ const ZabraneTable = () => {
     const [formData, setFormData] = useState(initialFormState);
     const [deleteAlert, setDeleteAlert] = useState({ isOpen: false, id: null });
 
-    // 3. DOHVAĆANJE PODATAKA
     const fetchZabrane = async () => {
         try {
             const response = await api.get('/api/zabrane');
@@ -71,14 +67,12 @@ const ZabraneTable = () => {
         initialLoad();
     }, []);
 
-    // 4. ENRICHMENT (Spajanje ID-jeva s imenima)
     const enrichedZabrane = useMemo(() => {
         return zabrane.map(zab => {
             const user = korisnici.find(k => k.id === zab.korisnik_id);
             const admin = administratori.find(a => a.id === zab.administrator_id);
             const resurs = resursi.find(r => r.id === zab.resurs_id);
 
-            // Određivanje teksta za opseg (bilo resurs ili tip)
             let opsegPrikaz = '-';
             if (zab.resurs_id) {
                 opsegPrikaz = resurs ? `Resurs: ${resurs.naziv || resurs.ime}` : `Resurs ID: ${zab.resurs_id}`;
@@ -96,7 +90,6 @@ const ZabraneTable = () => {
         });
     }, [zabrane, korisnici, resursi, administratori]);
 
-    // 5. CRUD LOGIKA
     const openCreateModal = () => {
         setModalMode('create');
         setFormData(initialFormState);
@@ -121,7 +114,6 @@ const ZabraneTable = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Frontend više ne šalje administrator_id
             const payload = {
                 korisnik_id: formData.korisnik_id,
                 resurs_id: formData.razina_zabrane === 'resurs' ? formData.resurs_id : null,
@@ -158,7 +150,6 @@ const ZabraneTable = () => {
         }
     };
 
-    // 6. SORTIRANJE I FILTRIRANJE
     const uniqueValues = useMemo(() => {
         const columns = ['korisnik_ime', 'administrator_ime', 'opseg_zabrane', 'status'];
         const uniques = {};
@@ -281,7 +272,6 @@ const ZabraneTable = () => {
                 </table>
             </div>
 
-            {/* MODAL ZA CREATE / UPDATE */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -298,7 +288,6 @@ const ZabraneTable = () => {
                                     </select>
                             </div>
 
-                            {/* LOGIKA ZA POŠTIVANJE CHECK CONSTRAINTA */}
                             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
                                 <label className="block text-sm font-bold text-slate-800">Razina/Opseg zabrane <span className="text-red-500">*</span></label>
                                 <div className="flex gap-4 text-sm mb-2">
@@ -355,7 +344,6 @@ const ZabraneTable = () => {
                 </div>
             )}
 
-            {/* MODAL ZA BRISANJE */}
             {deleteAlert.isOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm text-center">

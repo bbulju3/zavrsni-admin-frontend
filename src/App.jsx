@@ -10,7 +10,7 @@ import ZabraneTable from './components/ZabraneTable';
 const Dashboard = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('home');
-    const [isCollapsed, setIsCollapsed] = useState(false); // Novo stanje za kolapsiranje
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
@@ -19,7 +19,6 @@ const Dashboard = () => {
 
     return (
         <div className="flex min-h-screen bg-slate-100 text-slate-800">
-            {/* Navigacija - dinamična širina i tranzicija */}
             <aside className={`${isCollapsed ? 'w-20 p-3' : 'w-64 p-5'} bg-slate-950 text-slate-200 flex flex-col justify-between shadow-xl shrink-0 transition-all duration-300 ease-in-out`}>
                 <div>
                     <div className={`font-bold text-white tracking-wider border-b border-slate-800 pb-4 mb-6 flex items-center ${isCollapsed ? 'justify-center text-sm' : 'text-xl'}`}>
@@ -91,7 +90,6 @@ const Dashboard = () => {
             <main className="flex-1 min-w-0 p-8 overflow-x-auto">
                 <header className="flex justify-between items-center border-b border-slate-200 pb-5 mb-8 min-w-max">
                     <div className="flex items-center gap-4">
-                        {/* Gumb za sažimanje/proširivanje izbornika */}
                         <button
                             onClick={() => setIsCollapsed(!isCollapsed)}
                             className="p-2 bg-slate-200/60 hover:bg-slate-300 rounded-lg text-slate-700 transition-colors cursor-pointer flex items-center justify-center"
@@ -210,18 +208,13 @@ const Dashboard = () => {
     );
 };
 
-// Ostatak tvog App.jsx koda (importovi i Dashboard komponenta) ostaje potpuno isti!
-
-// Nova komponenta koja štiti rute
 const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem('adminToken');
 
-    // Ako token ne postoji, odmah ga preusmjeri na login
     if (!token) {
         return <Navigate to="/login" replace />;
     }
 
-    // Ako token postoji, prikaži traženu komponentu (u ovom slučaju Dashboard)
     return children;
 };
 
@@ -231,7 +224,6 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login />} />
 
-                {/* Dashboard ruta je sada omotana u ProtectedRoute */}
                 <Route
                     path="/dashboard"
                     element={
@@ -241,7 +233,6 @@ function App() {
                     }
                 />
 
-                {/* Defaultna ruta baca na dashboard, a ProtectedRoute će odlučiti ide li na login ili ga pušta */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
         </Router>
