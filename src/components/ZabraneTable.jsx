@@ -289,7 +289,7 @@ const ZabraneTable = () => {
                             </div>
 
                             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                                <label className="block text-sm font-bold text-slate-800">Razina/Opseg zabrane <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-bold text-slate-800">Razina zabrane <span className="text-red-500">*</span></label>
                                 <div className="flex gap-4 text-sm mb-2">
                                     <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
                                         <input type="radio" name="razina_zabrane" value="resurs" checked={formData.razina_zabrane === 'resurs'} onChange={() => setFormData({ ...formData, razina_zabrane: 'resurs', tip_resursa: '' })} />
