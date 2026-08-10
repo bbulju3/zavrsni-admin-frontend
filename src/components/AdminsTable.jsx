@@ -233,7 +233,7 @@ const AdminsTable = () => {
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
                         <h2 className="text-xl font-bold text-slate-800 mb-4">
-                            {modalMode === 'create' ? 'Dodaj novog korisnika' : 'Uredi korisnika'}
+                            {modalMode === 'create' ? 'Dodaj novog administratora' : 'Uredi administratora'}
                         </h2>
 
                         {formError && (
