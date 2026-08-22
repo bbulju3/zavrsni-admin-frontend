@@ -31,7 +31,6 @@ describe('ResourcesTable Komponenta', () => {
 
         expect(screen.getByText(/Učitavanje resursa.../i)).toBeInTheDocument();
 
-        // dohvaća sve elemente s tim nazivom (i opciju u filteru i ćeliju u tablici)
         await waitFor(() => {
             const elementi = screen.getAllByText('Konferencijska dvorana A');
             expect(elementi.length).toBeGreaterThan(0);
